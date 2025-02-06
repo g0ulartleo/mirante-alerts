@@ -2,9 +2,11 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
+	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
 	"github.com/hibiken/asynq"
 )
 
@@ -12,7 +14,11 @@ func main() {
 	conn := asynq.NewClient(asynq.RedisClientOpt{Addr: config.Env().RedisAddr})
 	defer conn.Close()
 
-	task, err := tasks.NewSignalWriteTask(1, true)
+	task, err := tasks.NewSignalWriteTask(1, sentinel.Signal{
+		Status:    sentinel.StatusHealthy,
+		Timestamp: time.Now(),
+		Message:   "OK",
+	})
 	if err != nil {
 		log.Fatalf("Failed to create task: %v", err)
 	}
