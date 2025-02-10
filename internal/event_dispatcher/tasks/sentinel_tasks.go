@@ -22,7 +22,7 @@ type SentinelRunPayload struct {
 func NewSentinelRunTask(sentinelID int) (*asynq.Task, error) {
 	payload, err := json.Marshal(SentinelRunPayload{SentinelID: sentinelID})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("json.Marshal failed: %v", err)
 	}
 	return asynq.NewTask(TypeSentinelRun, payload, asynq.MaxRetry(1)), nil
 }

@@ -1,0 +1,16 @@
+package templates
+
+templ Base(children templ.Component) {
+	<html>
+        <head>
+            <meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <title>Mirante Alerts</title>
+            <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+            <link href="/static/css/style.css" rel="stylesheet">
+        </head>
+        <body class="flex h-full w-full overflow-hidden">
+            @children
+        </body>
+    </html>
+}

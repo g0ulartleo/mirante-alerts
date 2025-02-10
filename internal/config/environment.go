@@ -7,6 +7,8 @@ import (
 
 type Environment struct {
 	RedisAddr string
+	HTTPPort  string
+	HTTPAddr  string
 }
 
 var (
@@ -26,6 +28,8 @@ func Env() *Environment {
 	once.Do(func() {
 		env = &Environment{
 			RedisAddr: getEnvOrDefault("REDIS_ADDR", "127.0.0.1:6379"),
+			HTTPPort:  getEnvOrDefault("HTTP_PORT", "40169"),
+			HTTPAddr:  getEnvOrDefault("HTTP_ADDR", "127.0.0.1"),
 		}
 	})
 

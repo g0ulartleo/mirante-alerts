@@ -22,7 +22,7 @@ type SignalWritePayload struct {
 func NewSignalWriteTask(sentinelID int, signal sentinel.Signal) (*asynq.Task, error) {
 	payload, err := json.Marshal(SignalWritePayload{SentinelID: sentinelID, Signal: signal})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("json.Marshal failed: %v", err)
 	}
 	return asynq.NewTask(TypeSignalWrite, payload, asynq.MaxRetry(3)), nil
 }
