@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	sentinelConfigs map[int]*sentinel.SentinelConfig
+	SentinelConfigs map[int]*sentinel.SentinelConfig
 )
 
 func loadConfig(path string) (*sentinel.SentinelConfig, error) {
@@ -30,7 +30,7 @@ func loadConfig(path string) (*sentinel.SentinelConfig, error) {
 }
 
 func GetSentinelConfig(id int) (*sentinel.SentinelConfig, error) {
-	config, ok := sentinelConfigs[id]
+	config, ok := SentinelConfigs[id]
 	if !ok {
 		return nil, fmt.Errorf("sentinel config not found for id: %d", id)
 	}
@@ -38,7 +38,7 @@ func GetSentinelConfig(id int) (*sentinel.SentinelConfig, error) {
 }
 
 func InitSentinelConfigs() {
-	sentinelConfigs = make(map[int]*sentinel.SentinelConfig)
+	SentinelConfigs = make(map[int]*sentinel.SentinelConfig)
 
 	if _, err := os.Stat("sentinels"); os.IsNotExist(err) {
 		log.Fatalf("sentinels directory does not exist")
@@ -56,7 +56,7 @@ func InitSentinelConfigs() {
 				return fmt.Errorf("failed to load config from %s: %v", path, err)
 			}
 			log.Printf("loaded config id %d from path %s", config.ID, path)
-			sentinelConfigs[config.ID] = config
+			SentinelConfigs[config.ID] = config
 		}
 		return nil
 	})

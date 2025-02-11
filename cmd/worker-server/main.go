@@ -6,12 +6,17 @@ import (
 
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal/store"
 	"github.com/hibiken/asynq"
 )
 
 func main() {
 	config.InitSentinelConfigs()
 	config.InitSentinelFactory()
+
+	memorySignalRepo := store.NewMemorySignalRepository()
+	signalService := signal.NewService(memorySignalRepo)
 
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: config.Env().RedisAddr},
@@ -29,8 +34,12 @@ func main() {
 	)
 
 	mux := asynq.NewServeMux()
-	mux.HandleFunc(tasks.TypeSignalWrite, tasks.HandleSignalWriteTask)
-	mux.HandleFunc(tasks.TypeSentinelRun, tasks.HandleSentinelRunTask)
+	mux.HandleFunc(tasks.TypeSignalWrite, func(ctx context.Context, t *asynq.Task) error {
+		return tasks.HandleSignalWriteTask(ctx, t, signalService)
+	})
+	mux.HandleFunc(tasks.TypeSentinelRun, func(ctx context.Context, t *asynq.Task) error {
+		return tasks.HandleSentinelRunTask(ctx, t, signalService)
+	})
 
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)

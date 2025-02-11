@@ -33,15 +33,15 @@ install-tailwind:
 
 .PHONY: tailwind-watch
 tailwind-watch:
-	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css --watch
+	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css --watch --config ./tailwind.config.js
 
 .PHONY: tailwind-build
 tailwind-build:
-	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css
+	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css --config ./tailwind.config.js
 
 .PHONY: build-http-server
 build-http-server:
-	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css
+	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css --config ./tailwind.config.js
 	templ generate
 	go build -o ./bin/http-server ./cmd/http-server/server.go
 

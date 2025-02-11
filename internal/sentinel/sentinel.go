@@ -2,32 +2,24 @@ package sentinel
 
 import (
 	"context"
-	"time"
+
+	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
 type Sentinel interface {
-	Check(ctx context.Context) (Signal, error)
+	Check(ctx context.Context) (signal.Signal, error)
 	Configure(config map[string]interface{}) error
 }
-
-// Signal represents a sentinel response
-type Signal struct {
-	Status    Status
-	Timestamp time.Time
-	Message   string
-	Metadata  map[string]interface{}
-}
-
-type Status string
-
-const (
-	StatusHealthy   Status = "healthy"
-	StatusUnhealthy Status = "unhealthy"
-)
 
 type SentinelConfig struct {
 	ID     int
 	Name   string
+	Path   []string
 	Type   string
 	Config map[string]interface{}
+}
+
+type SentinelConfigData struct {
+	Config  SentinelConfig
+	Signals []signal.Signal
 }

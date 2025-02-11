@@ -8,6 +8,7 @@ import (
 
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/hibiken/asynq"
 )
 
@@ -27,7 +28,7 @@ func NewSentinelRunTask(sentinelID int) (*asynq.Task, error) {
 	return asynq.NewTask(TypeSentinelRun, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleSentinelRunTask(ctx context.Context, t *asynq.Task) error {
+func HandleSentinelRunTask(ctx context.Context, t *asynq.Task, signalService *signal.Service) error {
 	var payload SentinelRunPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
@@ -50,5 +51,5 @@ func HandleSentinelRunTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("failed to check sentinel: %v", err)
 	}
 	log.Printf("Sentinel %d returned signal: %v", payload.SentinelID, signal)
-	return nil
+	return signalService.WriteSignal(signal)
 }

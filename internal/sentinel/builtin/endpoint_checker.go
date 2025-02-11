@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
 const (
@@ -46,11 +47,11 @@ func (e *EndpointCheckerSentinel) Configure(config map[string]interface{}) error
 	return nil
 }
 
-func (e *EndpointCheckerSentinel) Check(ctx context.Context) (sentinel.Signal, error) {
+func (e *EndpointCheckerSentinel) Check(ctx context.Context) (signal.Signal, error) {
 	response, err := e.client.Get(e.url)
 	if err != nil {
-		return sentinel.Signal{
-			Status:    sentinel.StatusUnhealthy,
+		return signal.Signal{
+			Status:    signal.StatusUnhealthy,
 			Timestamp: time.Now(),
 			Message:   fmt.Sprintf("error checking endpoint: %v", err),
 		}, nil
@@ -58,8 +59,8 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context) (sentinel.Signal, e
 	defer response.Body.Close()
 
 	if response.StatusCode != e.expectedStatus {
-		return sentinel.Signal{
-			Status:    sentinel.StatusUnhealthy,
+		return signal.Signal{
+			Status:    signal.StatusUnhealthy,
 			Timestamp: time.Now(),
 			Message:   fmt.Sprintf("expected status %d, got %d", e.expectedStatus, response.StatusCode),
 		}, nil
@@ -68,24 +69,24 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context) (sentinel.Signal, e
 	if e.expectedBody != "" {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			return sentinel.Signal{
-				Status:    sentinel.StatusUnhealthy,
+			return signal.Signal{
+				Status:    signal.StatusUnhealthy,
 				Timestamp: time.Now(),
 				Message:   fmt.Sprintf("error reading body: %v", err),
 			}, nil
 		}
 
 		if string(body) != e.expectedBody {
-			return sentinel.Signal{
-				Status:    sentinel.StatusUnhealthy,
+			return signal.Signal{
+				Status:    signal.StatusUnhealthy,
 				Timestamp: time.Now(),
 				Message:   fmt.Sprintf("expected body %s, got %s", e.expectedBody, string(body)),
 			}, nil
 		}
 	}
 
-	return sentinel.Signal{
-		Status:    sentinel.StatusHealthy,
+	return signal.Signal{
+		Status:    signal.StatusHealthy,
 		Timestamp: time.Now(),
 	}, nil
 }
