@@ -1,22 +1,76 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
+	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal/store"
 	"github.com/g0ulartleo/mirante-alerts/internal/templates"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
+func getConfigSignals(signalService *signal.Service) ([]sentinel.SentinelConfigData, error) {
+	cfgs := config.SentinelConfigs
+	cfgsData := make([]sentinel.SentinelConfigData, 0)
+	for _, cfg := range cfgs {
+		signals, err := signalService.GetSentinelLatestSignals(cfg.ID, 1)
+		if err != nil {
+			log.Printf("Error fetching signals for sentinel %s: %v", cfg.ID, err)
+			signals = []signal.Signal{}
+		}
+		cfgsData = append(cfgsData, sentinel.SentinelConfigData{
+			Config:  *cfg,
+			Signals: signals,
+		})
+	}
+	return cfgsData, nil
+}
+
 func main() {
+	config.InitSentinelConfigs()
+	signalService := signal.NewService(store.NewMemorySignalRepository())
+
 	e := echo.New()
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 	e.Static("/static", "static")
+
 	e.GET("/", func(c echo.Context) error {
-		return Render(c, http.StatusOK, templates.Alerts())
+		cfgsData, err := getConfigSignals(signalService)
+		if err != nil {
+			log.Printf("Error fetching config signals: %v", err)
+			return RenderError(c, http.StatusInternalServerError, err)
+		}
+		return Render(c, http.StatusOK, templates.Sentinels(cfgsData))
 	})
+
+	e.GET("/*", func(c echo.Context) error {
+		pathParam := c.Param("*")
+		var level int
+		var baseURL string
+		if pathParam == "" {
+			level = 0
+			baseURL = "/"
+		} else {
+			segments := strings.Split(pathParam, "/")
+			level = len(segments)
+			baseURL = "/" + pathParam
+		}
+		cfgsData, err := getConfigSignals(signalService)
+		if err != nil {
+			log.Printf("Error fetching config signals: %v", err)
+			return RenderError(c, http.StatusInternalServerError, err)
+		}
+
+		return Render(c, http.StatusOK, templates.Treemap(cfgsData, level, baseURL))
+	})
+
 	e.Logger.Fatal(e.Start(config.Env().HTTPAddr + ":" + config.Env().HTTPPort))
 }
 
