@@ -17,10 +17,10 @@ const (
 )
 
 type SentinelRunPayload struct {
-	SentinelID int
+	SentinelID string
 }
 
-func NewSentinelRunTask(sentinelID int) (*asynq.Task, error) {
+func NewSentinelRunTask(sentinelID string) (*asynq.Task, error) {
 	payload, err := json.Marshal(SentinelRunPayload{SentinelID: sentinelID})
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal failed: %v", err)
@@ -37,7 +37,7 @@ func HandleSentinelRunTask(ctx context.Context, t *asynq.Task, signalService *si
 	if err != nil {
 		return fmt.Errorf("failed to load sentinel config: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Running sentinel ID %d with config %v", payload.SentinelID, sentinelConfig.Name)
+	log.Printf("Running sentinel ID %s with config %v", payload.SentinelID, sentinelConfig.Name)
 	sentinel, err := sentinel.Factory.GetSentinel(sentinelConfig.Type)
 	if err != nil {
 		return fmt.Errorf("failed to get sentinel from factory: %v: %w", err, asynq.SkipRetry)
@@ -50,6 +50,6 @@ func HandleSentinelRunTask(ctx context.Context, t *asynq.Task, signalService *si
 	if err != nil {
 		return fmt.Errorf("failed to check sentinel: %v", err)
 	}
-	log.Printf("Sentinel %d returned signal: %v", payload.SentinelID, signal)
+	log.Printf("Sentinel %s returned signal: %v", payload.SentinelID, signal)
 	return signalService.WriteSignal(signal)
 }

@@ -3,7 +3,7 @@ package signal
 import "time"
 
 type Signal struct {
-	SentinelID int
+	SentinelID string
 	Status     Status
 	Timestamp  time.Time
 	Message    string

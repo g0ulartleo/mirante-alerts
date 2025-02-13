@@ -15,7 +15,7 @@ func main() {
 	defer conn.Close()
 
 	task, err := tasks.NewSignalWriteTask(signal.Signal{
-		SentinelID: 1,
+		SentinelID: "project_x-api-google-health-check",
 		Status:     signal.StatusHealthy,
 		Timestamp:  time.Now(),
 		Message:    "OK",

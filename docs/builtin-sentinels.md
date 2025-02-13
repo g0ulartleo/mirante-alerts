@@ -7,8 +7,8 @@ The Endpoint Checker sentinel type performs HTTP operations on URLs and validate
 #### Configuration
 
 ```yaml
-id: 1
-name: my-api-health-check
+id: providers-apis-google-health-check
+name: Google Health Check
 type: endpoint-checker
 config:
   url: https://example.com

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	SentinelConfigs map[int]*sentinel.SentinelConfig
+	SentinelConfigs map[string]*sentinel.SentinelConfig
 )
 
 func loadConfig(path string) (*sentinel.SentinelConfig, error) {
@@ -26,19 +26,20 @@ func loadConfig(path string) (*sentinel.SentinelConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal yml file: %v", err)
 	}
+	sentinelConfig.Path = strings.Split(path, "/")[1 : len(strings.Split(path, "/"))-1]
 	return sentinelConfig, nil
 }
 
-func GetSentinelConfig(id int) (*sentinel.SentinelConfig, error) {
+func GetSentinelConfig(id string) (*sentinel.SentinelConfig, error) {
 	config, ok := SentinelConfigs[id]
 	if !ok {
-		return nil, fmt.Errorf("sentinel config not found for id: %d", id)
+		return nil, fmt.Errorf("sentinel config not found for id: %s", id)
 	}
 	return config, nil
 }
 
 func InitSentinelConfigs() {
-	SentinelConfigs = make(map[int]*sentinel.SentinelConfig)
+	SentinelConfigs = make(map[string]*sentinel.SentinelConfig)
 
 	if _, err := os.Stat("sentinels"); os.IsNotExist(err) {
 		log.Fatalf("sentinels directory does not exist")
@@ -55,7 +56,7 @@ func InitSentinelConfigs() {
 				log.Printf("failed to load config from %s: %v", path, err)
 				return fmt.Errorf("failed to load config from %s: %v", path, err)
 			}
-			log.Printf("loaded config id %d from path %s", config.ID, path)
+			log.Printf("loaded config id %s from path %s", config.ID, path)
 			SentinelConfigs[config.ID] = config
 		}
 		return nil

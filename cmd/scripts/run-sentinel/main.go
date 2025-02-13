@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
@@ -18,10 +17,7 @@ func main() {
 		log.Fatalf("Usage: %s <sentinel-id>", os.Args[0])
 	}
 
-	sentinelID, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		log.Fatalf("Invalid sentinel ID: %v", err)
-	}
+	sentinelID := os.Args[1]
 
 	task, err := tasks.NewSentinelRunTask(sentinelID)
 	if err != nil {

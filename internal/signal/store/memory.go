@@ -5,11 +5,11 @@ import (
 )
 
 type MemorySignalRepository struct {
-	signals map[int][]signal.Signal
+	signals map[string][]signal.Signal
 }
 
 func NewMemorySignalRepository() *MemorySignalRepository {
-	return &MemorySignalRepository{signals: make(map[int][]signal.Signal)}
+	return &MemorySignalRepository{signals: make(map[string][]signal.Signal)}
 }
 
 func (r *MemorySignalRepository) Save(signal signal.Signal) error {
@@ -17,7 +17,7 @@ func (r *MemorySignalRepository) Save(signal signal.Signal) error {
 	return nil
 }
 
-func (r *MemorySignalRepository) GetSentinelLatestSignals(sentinelID int, limit int) ([]signal.Signal, error) {
+func (r *MemorySignalRepository) GetSentinelLatestSignals(sentinelID string, limit int) ([]signal.Signal, error) {
 	signals := r.signals[sentinelID]
 	if len(signals) == 0 {
 		return nil, nil
@@ -25,7 +25,7 @@ func (r *MemorySignalRepository) GetSentinelLatestSignals(sentinelID int, limit 
 	return signals[len(signals)-limit:], nil
 }
 
-func (r *MemorySignalRepository) GetSentinelHealth(sentinelID int) (signal.Status, error) {
+func (r *MemorySignalRepository) GetSentinelHealth(sentinelID string) (signal.Status, error) {
 	signals, err := r.GetSentinelLatestSignals(sentinelID, 1)
 	if err != nil {
 		return signal.StatusUnknown, err

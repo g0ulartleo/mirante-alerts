@@ -12,7 +12,7 @@ type Sentinel interface {
 }
 
 type SentinelConfig struct {
-	ID     int
+	ID     string
 	Name   string
 	Path   []string
 	Type   string
