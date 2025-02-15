@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-cmd = "templ generate && go build -o ./tmp/main ./cmd/http-server"
+cmd = "templ generate && go build -tags dev,mysql -o ./tmp/main ./cmd/http-server"
 bin = "tmp/main"
 include_ext = ["go", "templ"]
 exclude_dir = ["assets", "tmp", "vendor"]

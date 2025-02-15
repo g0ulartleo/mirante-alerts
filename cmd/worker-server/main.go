@@ -47,6 +47,9 @@ func main() {
 	mux.HandleFunc(tasks.TypeSentinelRun, func(ctx context.Context, t *asynq.Task) error {
 		return tasks.HandleSentinelRunTask(ctx, t, signalService)
 	})
+	mux.HandleFunc(tasks.TypeCleanSignals, func(ctx context.Context, t *asynq.Task) error {
+		return tasks.HandleCleanSignalsTask(ctx, t, signalService)
+	})
 
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)

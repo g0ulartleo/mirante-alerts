@@ -19,3 +19,7 @@ func (s *Service) GetSentinelLatestSignals(sentinelID string, limit int) ([]Sign
 func (s *Service) GetSentinelHealth(sentinelID string) (Status, error) {
 	return s.repo.GetSentinelHealth(sentinelID)
 }
+
+func (s *Service) CleanOldSignals() error {
+	return s.repo.CleanOldSignals()
+}

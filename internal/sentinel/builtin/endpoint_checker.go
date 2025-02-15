@@ -47,22 +47,24 @@ func (e *EndpointCheckerSentinel) Configure(config map[string]interface{}) error
 	return nil
 }
 
-func (e *EndpointCheckerSentinel) Check(ctx context.Context) (signal.Signal, error) {
+func (e *EndpointCheckerSentinel) Check(ctx context.Context, sentinelID string) (signal.Signal, error) {
 	response, err := e.client.Get(e.url)
 	if err != nil {
 		return signal.Signal{
-			Status:    signal.StatusUnhealthy,
-			Timestamp: time.Now(),
-			Message:   fmt.Sprintf("error checking endpoint: %v", err),
+			SentinelID: sentinelID,
+			Status:     signal.StatusUnhealthy,
+			Timestamp:  time.Now(),
+			Message:    fmt.Sprintf("error checking endpoint: %v", err),
 		}, nil
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != e.expectedStatus {
 		return signal.Signal{
-			Status:    signal.StatusUnhealthy,
-			Timestamp: time.Now(),
-			Message:   fmt.Sprintf("expected status %d, got %d", e.expectedStatus, response.StatusCode),
+			SentinelID: sentinelID,
+			Status:     signal.StatusUnhealthy,
+			Timestamp:  time.Now(),
+			Message:    fmt.Sprintf("expected status %d, got %d", e.expectedStatus, response.StatusCode),
 		}, nil
 	}
 
@@ -70,23 +72,26 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context) (signal.Signal, err
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return signal.Signal{
-				Status:    signal.StatusUnhealthy,
-				Timestamp: time.Now(),
-				Message:   fmt.Sprintf("error reading body: %v", err),
+				SentinelID: sentinelID,
+				Status:     signal.StatusUnhealthy,
+				Timestamp:  time.Now(),
+				Message:    fmt.Sprintf("error reading body: %v", err),
 			}, nil
 		}
 
 		if string(body) != e.expectedBody {
 			return signal.Signal{
-				Status:    signal.StatusUnhealthy,
-				Timestamp: time.Now(),
-				Message:   fmt.Sprintf("expected body %s, got %s", e.expectedBody, string(body)),
+				SentinelID: sentinelID,
+				Status:     signal.StatusUnhealthy,
+				Timestamp:  time.Now(),
+				Message:    fmt.Sprintf("expected body %s, got %s", e.expectedBody, string(body)),
 			}, nil
 		}
 	}
 
 	return signal.Signal{
-		Status:    signal.StatusHealthy,
-		Timestamp: time.Now(),
+		SentinelID: sentinelID,
+		Status:     signal.StatusHealthy,
+		Timestamp:  time.Now(),
 	}, nil
 }

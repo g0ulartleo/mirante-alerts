@@ -3,3 +3,10 @@ services:
     image: redis:7.2-alpine
     ports:
       - 6379:6379
+  
+  signals-database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306

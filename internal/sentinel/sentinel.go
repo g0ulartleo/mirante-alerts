@@ -7,7 +7,7 @@ import (
 )
 
 type Sentinel interface {
-	Check(ctx context.Context) (signal.Signal, error)
+	Check(ctx context.Context, sentinelID string) (signal.Signal, error)
 	Configure(config map[string]interface{}) error
 }
 

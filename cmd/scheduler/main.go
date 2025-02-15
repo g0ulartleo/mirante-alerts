@@ -33,6 +33,12 @@ func main() {
 		log.Printf("registered an entry: %q\n", entryID)
 	}
 
+	cleanSignalsTask, err := tasks.NewCleanSignalsTask()
+	if err != nil {
+		log.Fatalf("Error creating clean signals task: %v", err)
+	}
+	scheduler.Register("@every 1d", cleanSignalsTask)
+
 	if err := scheduler.Run(); err != nil {
 		log.Fatal(err)
 	}

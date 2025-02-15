@@ -40,3 +40,11 @@ func (r *MemorySignalRepository) GetSentinelHealth(sentinelID string) (signal.St
 	}
 	return signals[0].Status, nil
 }
+
+func (r *MemorySignalRepository) CleanOldSignals() error {
+	return nil
+}
+
+func (r *MemorySignalRepository) Close() error {
+	return nil
+}

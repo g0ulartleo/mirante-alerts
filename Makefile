@@ -1,10 +1,12 @@
 help:
 	@echo "Available commands:"
-	@echo "  go-install-air         Install Air for live reloading"
-	@echo "  install-tailwind       Install TailwindCSS"
-	@echo "  tailwind-watch         Watch and compile TailwindCSS files"
-	@echo "  tailwind-build         Build TailwindCSS files"
-	@echo "  build-http-server      Build the HTTP server"
+	@echo "  go-install-air           Install Air for live reloading"
+	@echo "  install-tailwind         Install TailwindCSS"
+	@echo "  tailwind-watch           Watch and compile TailwindCSS files"
+	@echo "  tailwind-build           Build TailwindCSS files"
+	@echo "  build-http-server-mysql  Build the HTTP server with MySQL support"
+	@echo "  build-worker-mysql       Build the worker with MySQL support"
+	@echo "  build-scheduler          Build the scheduler"
 
 .PHONY: go-install-air
 go-install-air:
@@ -39,9 +41,16 @@ tailwind-watch:
 tailwind-build:
 	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css --config ./tailwind.config.js
 
-.PHONY: build-http-server
-build-http-server:
+.PHONY: build-http-server-mysql
+build-http-server-mysql:
 	./tailwindcss -i ./static/css/custom.css -o ./static/css/style.css --config ./tailwind.config.js
 	templ generate
-	go build -o ./bin/http-server ./cmd/http-server/server.go
+	go build -tags mysql -o ./bin/http-server ./cmd/http-server/server.go
 
+.PHONY: build-worker-mysql
+build-worker-mysql:
+	go build -tags mysql -o ./bin/worker ./cmd/worker/main.go
+
+.PHONY: build-scheduler
+build-scheduler:
+	go build -o ./bin/scheduler ./cmd/scheduler/main.go

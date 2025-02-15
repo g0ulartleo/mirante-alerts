@@ -46,7 +46,7 @@ func HandleSentinelRunTask(ctx context.Context, t *asynq.Task, signalService *si
 	if err != nil {
 		return fmt.Errorf("failed to configure sentinel: %v: %w", err, asynq.SkipRetry)
 	}
-	signal, err := sentinel.Check(ctx)
+	signal, err := sentinel.Check(ctx, payload.SentinelID)
 	if err != nil {
 		return fmt.Errorf("failed to check sentinel: %v", err)
 	}
