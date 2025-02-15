@@ -37,7 +37,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error initializing sentinel configs: %v", err)
 	}
-	signalService := signal.NewService(stores.NewMemorySignalRepository())
+	signalStore, err := stores.NewStore(config.LoadSignalsDatabaseConfigFromEnv())
+	if err != nil {
+		log.Fatalf("Error initializing signal store: %v", err)
+	}
+	defer signalStore.Close()
+	signalService := signal.NewService(signalStore)
 
 	e := echo.New()
 	e.Use(middleware.Logger())

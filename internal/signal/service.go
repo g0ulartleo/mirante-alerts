@@ -5,9 +5,7 @@ type Service struct {
 }
 
 func NewService(repo SignalRepository) *Service {
-	service := &Service{repo: repo}
-	service.repo.Init()
-	return service
+	return &Service{repo: repo}
 }
 
 func (s *Service) WriteSignal(signal Signal) error {

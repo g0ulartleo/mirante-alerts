@@ -18,8 +18,12 @@ func main() {
 	}
 	config.InitSentinelFactory()
 
-	memorySignalRepo := stores.NewMemorySignalRepository()
-	signalService := signal.NewService(memorySignalRepo)
+	signalStore, err := stores.NewStore(config.LoadSignalsDatabaseConfigFromEnv())
+	if err != nil {
+		log.Fatalf("Error initializing signal store: %v", err)
+	}
+	defer signalStore.Close()
+	signalService := signal.NewService(signalStore)
 
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: config.Env().RedisAddr},
