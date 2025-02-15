@@ -1,4 +1,4 @@
-package store
+package stores
 
 import (
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
@@ -10,6 +10,11 @@ type MemorySignalRepository struct {
 
 func NewMemorySignalRepository() *MemorySignalRepository {
 	return &MemorySignalRepository{signals: make(map[string][]signal.Signal)}
+}
+
+func (r *MemorySignalRepository) Init() error {
+	r.signals = make(map[string][]signal.Signal)
+	return nil
 }
 
 func (r *MemorySignalRepository) Save(signal signal.Signal) error {

@@ -12,11 +12,13 @@ type Sentinel interface {
 }
 
 type SentinelConfig struct {
-	ID     string
-	Name   string
-	Path   []string
-	Type   string
-	Config map[string]interface{}
+	ID       string
+	Name     string
+	Path     []string
+	Type     string
+	Config   map[string]interface{}
+	Cron     string
+	Interval string
 }
 
 type SentinelConfigData struct {

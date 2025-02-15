@@ -7,15 +7,18 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	"github.com/g0ulartleo/mirante-alerts/internal/signal/store"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
 	"github.com/hibiken/asynq"
 )
 
 func main() {
-	config.InitSentinelConfigs()
+	err := config.InitSentinelConfigs()
+	if err != nil {
+		log.Fatalf("Error initializing sentinel configs: %v", err)
+	}
 	config.InitSentinelFactory()
 
-	memorySignalRepo := store.NewMemorySignalRepository()
+	memorySignalRepo := stores.NewMemorySignalRepository()
 	signalService := signal.NewService(memorySignalRepo)
 
 	srv := asynq.NewServer(

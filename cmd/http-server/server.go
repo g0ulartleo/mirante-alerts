@@ -9,7 +9,7 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	"github.com/g0ulartleo/mirante-alerts/internal/signal/store"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/templates"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -33,8 +33,11 @@ func getConfigSignals(signalService *signal.Service) ([]sentinel.SentinelConfigD
 }
 
 func main() {
-	config.InitSentinelConfigs()
-	signalService := signal.NewService(store.NewMemorySignalRepository())
+	err := config.InitSentinelConfigs()
+	if err != nil {
+		log.Fatalf("Error initializing sentinel configs: %v", err)
+	}
+	signalService := signal.NewService(stores.NewMemorySignalRepository())
 
 	e := echo.New()
 	e.Use(middleware.Logger())
