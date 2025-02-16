@@ -3,11 +3,11 @@ package signal
 import "time"
 
 type Signal struct {
-	SentinelID string
-	Status     Status
-	Timestamp  time.Time
-	Message    string
-	Metadata   map[string]interface{}
+	AlertID   string
+	Status    Status
+	Timestamp time.Time
+	Message   string
+	Metadata  map[string]interface{}
 }
 
 type Status string

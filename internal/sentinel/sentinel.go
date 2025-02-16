@@ -7,21 +7,6 @@ import (
 )
 
 type Sentinel interface {
-	Check(ctx context.Context, sentinelID string) (signal.Signal, error)
+	Check(ctx context.Context, alertID string) (signal.Signal, error)
 	Configure(config map[string]interface{}) error
-}
-
-type SentinelConfig struct {
-	ID       string
-	Name     string
-	Path     []string
-	Type     string
-	Config   map[string]interface{}
-	Cron     string
-	Interval string
-}
-
-type SentinelConfigData struct {
-	Config  SentinelConfig
-	Signals []signal.Signal
 }

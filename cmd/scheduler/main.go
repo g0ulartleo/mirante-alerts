@@ -10,16 +10,16 @@ import (
 )
 
 func main() {
-	err := config.InitSentinelConfigs()
+	err := config.InitAlerts()
 	if err != nil {
 		log.Fatalf("Error initializing sentinel configs: %v", err)
 	}
 	scheduler := asynq.NewScheduler(asynq.RedisClientOpt{Addr: config.Env().RedisAddr}, nil)
 
-	for _, sentinelConfig := range config.SentinelConfigs {
-		task, err := tasks.NewSentinelRunTask(sentinelConfig.ID)
+	for _, sentinelConfig := range config.Alerts {
+		task, err := tasks.NewSentinelCheckAlertTask(sentinelConfig.ID)
 		if err != nil {
-			log.Fatalf("Error creating sentinel run task: %v", err)
+			log.Fatalf("Error creating sentinel check alert task: %v", err)
 		}
 		cronspec := sentinelConfig.Cron
 		if cronspec == "" {
@@ -28,7 +28,7 @@ func main() {
 
 		entryID, err := scheduler.Register(cronspec, task)
 		if err != nil {
-			log.Fatalf("Error registering sentinel run task: %v", err)
+			log.Fatalf("Error registering sentinel check alert task: %v", err)
 		}
 		log.Printf("registered an entry: %q\n", entryID)
 	}

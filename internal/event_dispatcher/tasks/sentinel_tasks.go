@@ -13,43 +13,43 @@ import (
 )
 
 const (
-	TypeSentinelRun = "sentinel:run"
+	TypeSentinelCheckAlert = "sentinel:check_alert"
 )
 
-type SentinelRunPayload struct {
-	SentinelID string
+type SentinelCheckAlertPayload struct {
+	AlertID string
 }
 
-func NewSentinelRunTask(sentinelID string) (*asynq.Task, error) {
-	payload, err := json.Marshal(SentinelRunPayload{SentinelID: sentinelID})
+func NewSentinelCheckAlertTask(alertID string) (*asynq.Task, error) {
+	payload, err := json.Marshal(SentinelCheckAlertPayload{AlertID: alertID})
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal failed: %v", err)
 	}
-	return asynq.NewTask(TypeSentinelRun, payload, asynq.MaxRetry(1)), nil
+	return asynq.NewTask(TypeSentinelCheckAlert, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleSentinelRunTask(ctx context.Context, t *asynq.Task, signalService *signal.Service) error {
-	var payload SentinelRunPayload
+func HandleSentinelCheckAlertTask(ctx context.Context, t *asynq.Task, signalService *signal.Service) error {
+	var payload SentinelCheckAlertPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	sentinelConfig, err := config.GetSentinelConfig(payload.SentinelID)
+	alertConfig, err := config.GetAlertConfig(payload.AlertID)
 	if err != nil {
-		return fmt.Errorf("failed to load sentinel config: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("failed to load alert config: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Running sentinel ID %s with config %v", payload.SentinelID, sentinelConfig.Name)
-	sentinel, err := sentinel.Factory.GetSentinel(sentinelConfig.Type)
+	log.Printf("Running alert ID %s with config %v", payload.AlertID, alertConfig.Name)
+	sentinel, err := sentinel.Factory.GetSentinel(alertConfig.Type)
 	if err != nil {
 		return fmt.Errorf("failed to get sentinel from factory: %v: %w", err, asynq.SkipRetry)
 	}
-	err = sentinel.Configure(sentinelConfig.Config)
+	err = sentinel.Configure(alertConfig.Config)
 	if err != nil {
 		return fmt.Errorf("failed to configure sentinel: %v: %w", err, asynq.SkipRetry)
 	}
-	signal, err := sentinel.Check(ctx, payload.SentinelID)
+	signal, err := sentinel.Check(ctx, payload.AlertID)
 	if err != nil {
 		return fmt.Errorf("failed to check sentinel: %v", err)
 	}
-	log.Printf("Sentinel %s returned signal: %v", payload.SentinelID, signal)
+	log.Printf("Alert %s returned signal: %v", payload.AlertID, signal)
 	return signalService.WriteSignal(signal)
 }

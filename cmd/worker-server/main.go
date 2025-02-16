@@ -12,9 +12,9 @@ import (
 )
 
 func main() {
-	err := config.InitSentinelConfigs()
+	err := config.InitAlerts()
 	if err != nil {
-		log.Fatalf("Error initializing sentinel configs: %v", err)
+		log.Fatalf("Error initializing alert configs: %v", err)
 	}
 	config.InitSentinelFactory()
 
@@ -44,8 +44,8 @@ func main() {
 	mux.HandleFunc(tasks.TypeSignalWrite, func(ctx context.Context, t *asynq.Task) error {
 		return tasks.HandleSignalWriteTask(ctx, t, signalService)
 	})
-	mux.HandleFunc(tasks.TypeSentinelRun, func(ctx context.Context, t *asynq.Task) error {
-		return tasks.HandleSentinelRunTask(ctx, t, signalService)
+	mux.HandleFunc(tasks.TypeSentinelCheckAlert, func(ctx context.Context, t *asynq.Task) error {
+		return tasks.HandleSentinelCheckAlertTask(ctx, t, signalService)
 	})
 	mux.HandleFunc(tasks.TypeCleanSignals, func(ctx context.Context, t *asynq.Task) error {
 		return tasks.HandleCleanSignalsTask(ctx, t, signalService)

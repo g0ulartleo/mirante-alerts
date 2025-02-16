@@ -12,12 +12,12 @@ func (s *Service) WriteSignal(signal Signal) error {
 	return s.repo.Save(signal)
 }
 
-func (s *Service) GetSentinelLatestSignals(sentinelID string, limit int) ([]Signal, error) {
-	return s.repo.GetSentinelLatestSignals(sentinelID, limit)
+func (s *Service) GetAlertLatestSignals(alertID string, limit int) ([]Signal, error) {
+	return s.repo.GetAlertLatestSignals(alertID, limit)
 }
 
-func (s *Service) GetSentinelHealth(sentinelID string) (Status, error) {
-	return s.repo.GetSentinelHealth(sentinelID)
+func (s *Service) GetAlertHealth(alertID string) (Status, error) {
+	return s.repo.GetAlertHealth(alertID)
 }
 
 func (s *Service) CleanOldSignals() error {

@@ -15,10 +15,10 @@ func main() {
 	defer conn.Close()
 
 	task, err := tasks.NewSignalWriteTask(signal.Signal{
-		SentinelID: "project_x-api-google-health-check",
-		Status:     signal.StatusHealthy,
-		Timestamp:  time.Now(),
-		Message:    "OK",
+		AlertID:   "project_x-api-google-health-check",
+		Status:    signal.StatusHealthy,
+		Timestamp: time.Now(),
+		Message:   "OK",
 	})
 	if err != nil {
 		log.Fatalf("Failed to create task: %v", err)

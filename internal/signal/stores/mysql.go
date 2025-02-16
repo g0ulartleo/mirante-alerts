@@ -45,23 +45,23 @@ func NewMySQLSignalRepository(cfg config.MySQLConfig) (signal.SignalRepository, 
 }
 
 func (r *MySQLSignalRepository) Save(signal signal.Signal) error {
-	query := `INSERT INTO signals (sentinel_id, status, message, metadata, created_at) VALUES (?, ?, ?, ?, ?)`
+	query := `INSERT INTO signals (alert_id, status, message, metadata, created_at) VALUES (?, ?, ?, ?, ?)`
 	metadataJSON, err := json.Marshal(signal.Metadata)
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Exec(query, signal.SentinelID, signal.Status, signal.Message, metadataJSON, time.Now())
+	_, err = r.db.Exec(query, signal.AlertID, signal.Status, signal.Message, metadataJSON, time.Now())
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *MySQLSignalRepository) GetSentinelLatestSignals(sentinelID string, limit int) ([]signal.Signal, error) {
+func (r *MySQLSignalRepository) GetAlertLatestSignals(alertID string, limit int) ([]signal.Signal, error) {
 	query := `
-		SELECT sentinel_id, status, message, metadata, created_at 
-		FROM signals WHERE sentinel_id = ? ORDER BY created_at DESC LIMIT ?`
-	rows, err := r.db.Query(query, sentinelID, limit)
+		SELECT alert_id, status, message, metadata, created_at 
+		FROM signals WHERE alert_id = ? ORDER BY created_at DESC LIMIT ?`
+	rows, err := r.db.Query(query, alertID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (r *MySQLSignalRepository) GetSentinelLatestSignals(sentinelID string, limi
 	for rows.Next() {
 		var s signal.Signal
 		var metadataJSON []byte
-		err := rows.Scan(&s.SentinelID, &s.Status, &s.Message, &metadataJSON, &s.Timestamp)
+		err := rows.Scan(&s.AlertID, &s.Status, &s.Message, &metadataJSON, &s.Timestamp)
 		if err != nil {
 			return nil, err
 		}
@@ -83,14 +83,14 @@ func (r *MySQLSignalRepository) GetSentinelLatestSignals(sentinelID string, limi
 	return signals, nil
 }
 
-func (r *MySQLSignalRepository) GetSentinelHealth(sentinelID string) (signal.Status, error) {
+func (r *MySQLSignalRepository) GetAlertHealth(alertID string) (signal.Status, error) {
 	query := `
 		SELECT status 
 		FROM signals 
-		WHERE sentinel_id = ? 
+		WHERE alert_id = ? 
 		ORDER BY created_at DESC 
 		LIMIT 1`
-	rows, err := r.db.Query(query, sentinelID)
+	rows, err := r.db.Query(query, alertID)
 	if err != nil {
 		return signal.StatusUnknown, err
 	}
@@ -114,12 +114,12 @@ func (r *MySQLSignalRepository) Init() error {
 	}
 	query = `
 		CREATE TABLE IF NOT EXISTS ` + signalsDatabase + `.signals (
-			sentinel_id VARCHAR(255) NOT NULL,
+			alert_id VARCHAR(255) NOT NULL,
 			status VARCHAR(255) NOT NULL,
 			message VARCHAR(255) NOT NULL,
 			metadata JSON NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			INDEX idx_sentinel_created (sentinel_id, created_at)
+			INDEX idx_alert_created (alert_id, created_at)
 		)`
 	_, err = r.db.Exec(query)
 	if err != nil {

@@ -18,20 +18,20 @@ func (r *MemorySignalRepository) Init() error {
 }
 
 func (r *MemorySignalRepository) Save(signal signal.Signal) error {
-	r.signals[signal.SentinelID] = append(r.signals[signal.SentinelID], signal)
+	r.signals[signal.AlertID] = append(r.signals[signal.AlertID], signal)
 	return nil
 }
 
-func (r *MemorySignalRepository) GetSentinelLatestSignals(sentinelID string, limit int) ([]signal.Signal, error) {
-	signals := r.signals[sentinelID]
+func (r *MemorySignalRepository) GetAlertLatestSignals(alertID string, limit int) ([]signal.Signal, error) {
+	signals := r.signals[alertID]
 	if len(signals) == 0 {
 		return nil, nil
 	}
 	return signals[len(signals)-limit:], nil
 }
 
-func (r *MemorySignalRepository) GetSentinelHealth(sentinelID string) (signal.Status, error) {
-	signals, err := r.GetSentinelLatestSignals(sentinelID, 1)
+func (r *MemorySignalRepository) GetAlertHealth(alertID string) (signal.Status, error) {
+	signals, err := r.GetAlertLatestSignals(alertID, 1)
 	if err != nil {
 		return signal.StatusUnknown, err
 	}

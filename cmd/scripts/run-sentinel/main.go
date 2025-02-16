@@ -19,7 +19,7 @@ func main() {
 
 	sentinelID := os.Args[1]
 
-	task, err := tasks.NewSentinelRunTask(sentinelID)
+	task, err := tasks.NewSentinelCheckAlertTask(sentinelID)
 	if err != nil {
 		log.Fatalf("Failed to create task: %v", err)
 	}

@@ -4,7 +4,7 @@ type SignalRepository interface {
 	Init() error
 	Close() error
 	Save(signal Signal) error
-	GetSentinelLatestSignals(sentinelID string, limit int) ([]Signal, error)
-	GetSentinelHealth(sentinelID string) (Status, error)
+	GetAlertLatestSignals(alertID string, limit int) ([]Signal, error)
+	GetAlertHealth(alertID string) (Status, error)
 	CleanOldSignals() error
 }
