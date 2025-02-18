@@ -4,7 +4,6 @@ package stores
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -45,12 +44,8 @@ func NewMySQLSignalRepository(cfg config.MySQLConfig) (signal.SignalRepository, 
 }
 
 func (r *MySQLSignalRepository) Save(signal signal.Signal) error {
-	query := `INSERT INTO signals (alert_id, status, message, metadata, created_at) VALUES (?, ?, ?, ?, ?)`
-	metadataJSON, err := json.Marshal(signal.Metadata)
-	if err != nil {
-		return err
-	}
-	_, err = r.db.Exec(query, signal.AlertID, signal.Status, signal.Message, metadataJSON, time.Now())
+	query := `INSERT INTO signals (alert_id, status, message, created_at) VALUES (?, ?, ?, ?)`
+	_, err := r.db.Exec(query, signal.AlertID, signal.Status, signal.Message, time.Now())
 	if err != nil {
 		return err
 	}
@@ -59,7 +54,7 @@ func (r *MySQLSignalRepository) Save(signal signal.Signal) error {
 
 func (r *MySQLSignalRepository) GetAlertLatestSignals(alertID string, limit int) ([]signal.Signal, error) {
 	query := `
-		SELECT alert_id, status, message, metadata, created_at 
+		SELECT alert_id, status, message, created_at 
 		FROM signals WHERE alert_id = ? ORDER BY created_at DESC LIMIT ?`
 	rows, err := r.db.Query(query, alertID, limit)
 	if err != nil {
@@ -69,12 +64,7 @@ func (r *MySQLSignalRepository) GetAlertLatestSignals(alertID string, limit int)
 	signals := make([]signal.Signal, 0)
 	for rows.Next() {
 		var s signal.Signal
-		var metadataJSON []byte
-		err := rows.Scan(&s.AlertID, &s.Status, &s.Message, &metadataJSON, &s.Timestamp)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(metadataJSON, &s.Metadata)
+		err := rows.Scan(&s.AlertID, &s.Status, &s.Message, &s.Timestamp)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +107,6 @@ func (r *MySQLSignalRepository) Init() error {
 			alert_id VARCHAR(255) NOT NULL,
 			status VARCHAR(255) NOT NULL,
 			message VARCHAR(255) NOT NULL,
-			metadata JSON NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			INDEX idx_alert_created (alert_id, created_at)
 		)`

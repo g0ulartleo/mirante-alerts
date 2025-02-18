@@ -7,7 +7,6 @@ type Signal struct {
 	Status    Status
 	Timestamp time.Time
 	Message   string
-	Metadata  map[string]interface{}
 }
 
 type Status string

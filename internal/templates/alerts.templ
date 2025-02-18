@@ -41,9 +41,6 @@ templ Treemap(alertsWithSignals []alert.AlertSignals, level int, baseURL string)
 						<span class="text-xl text-white">{ alertWithSignal.Alert.Name }</span>
 						if len(alertWithSignal.Signals) > 0 {
 							<p class="text-sm text-white">{ alertWithSignal.Signals[len(alertWithSignal.Signals)-1].Message }</p>
-							if alertWithSignal.Signals[len(alertWithSignal.Signals)-1].Status == "unhealthy" {
-								<p class="text-sm text-white">{ fmt.Sprintf("%v", alertWithSignal.Signals[len(alertWithSignal.Signals)-1].Metadata) }</p>
-							}
 						}
 					</div>
 				</div>

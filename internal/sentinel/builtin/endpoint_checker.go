@@ -48,7 +48,9 @@ func (e *EndpointCheckerSentinel) Configure(config map[string]interface{}) error
 }
 
 func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (signal.Signal, error) {
+	start := time.Now()
 	response, err := e.client.Get(e.url)
+	responseTime := time.Since(start)
 	if err != nil {
 		return signal.Signal{
 			AlertID:   alertID,
@@ -93,5 +95,6 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (si
 		AlertID:   alertID,
 		Status:    signal.StatusHealthy,
 		Timestamp: time.Now(),
+		Message:   fmt.Sprintf("responded status %d in %vms", response.StatusCode, responseTime.Milliseconds()),
 	}, nil
 }
