@@ -27,10 +27,12 @@ type Sentinel interface {
 }
 ```
 
-and then registering it with the sentinel factory (TBD):
+and then registering it via init function:
 
 ```go
-sentinel.Register("my-sentinel", MySentinel{})
+func init() {
+	sentinel.Factory.Register("my-sentinel", MySentinel{})
+}
 ```
 
 See the [custom-sentinels](docs/custom-sentinels.md) documentation for details. (TBD)

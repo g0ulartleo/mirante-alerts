@@ -14,12 +14,12 @@ func main() {
 	defer conn.Close()
 
 	if len(os.Args) != 2 {
-		log.Fatalf("Usage: %s <sentinel-id>", os.Args[0])
+		log.Fatalf("Usage: %s <alert-id>", os.Args[0])
 	}
 
-	sentinelID := os.Args[1]
+	alertID := os.Args[1]
 
-	task, err := tasks.NewSentinelCheckAlertTask(sentinelID)
+	task, err := tasks.NewSentinelCheckAlertTask(alertID)
 	if err != nil {
 		log.Fatalf("Failed to create task: %v", err)
 	}

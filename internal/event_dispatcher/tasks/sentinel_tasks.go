@@ -37,7 +37,7 @@ func HandleSentinelCheckAlertTask(ctx context.Context, t *asynq.Task, signalServ
 	if err != nil {
 		return fmt.Errorf("failed to load alert config: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Running alert ID %s with config %v", payload.AlertID, alertConfig.Name)
+	log.Printf("Sentinel checking alert ID %s", payload.AlertID)
 	sentinel, err := sentinel.Factory.GetSentinel(alertConfig.Type)
 	if err != nil {
 		return fmt.Errorf("failed to get sentinel from factory: %v: %w", err, asynq.SkipRetry)
