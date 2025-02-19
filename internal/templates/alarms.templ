@@ -4,25 +4,25 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/g0ulartleo/mirante-alerts/internal/alert"
+	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 )
 
-templ Alerts(alertsWithSignals []alert.AlertSignals) {
-	@Treemap(alertsWithSignals, 0, "/")
+templ Alarms(alarmsWithSignals []alarm.AlarmSignals) {
+	@Treemap(alarmsWithSignals, 0, "/")
 }
 
-templ Treemap(alertsWithSignals []alert.AlertSignals, level int, baseURL string) {
+templ Treemap(alarmsWithSignals []alarm.AlarmSignals, level int, baseURL string) {
 	<div class="h-screen p-2">
 		<div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] auto-rows-fr gap-2 h-[calc(100vh-1rem)]">
-			{{ groups := make(map[string][]alert.AlertSignals) }}
-			{{ thisLevelConfigs := []alert.AlertSignals{} }}
+			{{ groups := make(map[string][]alarm.AlarmSignals) }}
+			{{ thisLevelConfigs := []alarm.AlarmSignals{} }}
 
-			for _, alertWithSignal := range alertsWithSignals {
-				if strings.Join(alertWithSignal.Alert.Path, "/") == strings.TrimLeft(baseURL, "/") {
-					{{ thisLevelConfigs = append(thisLevelConfigs, alertWithSignal) }}
-				} else if len(alertWithSignal.Alert.Path) > level {
-					{{ groupKey := alertWithSignal.Alert.Path[level] }}
-					{{ groups[groupKey] = append(groups[groupKey], alertWithSignal) }}
+			for _, alarmWithSignal := range alarmsWithSignals {
+				if strings.Join(alarmWithSignal.Alarm.Path, "/") == strings.TrimLeft(baseURL, "/") {
+					{{ thisLevelConfigs = append(thisLevelConfigs, alarmWithSignal) }}
+				} else if len(alarmWithSignal.Alarm.Path) > level {
+					{{ groupKey := alarmWithSignal.Alarm.Path[level] }}
+					{{ groups[groupKey] = append(groups[groupKey], alarmWithSignal) }}
 				}
 			}
 
@@ -34,13 +34,13 @@ templ Treemap(alertsWithSignals []alert.AlertSignals, level int, baseURL string)
 				</a>
 			}
 
-			for _, alertWithSignal := range thisLevelConfigs {
-				{{ alertStatusColor := getAlertStatusColor(alertWithSignal) }}
-				<div class={ "w-full h-full flex items-center justify-center rounded-sm text-center p-2 " + alertStatusColor }>
+			for _, alarmWithSignal := range thisLevelConfigs {
+				{{ alarmStatusColor := getAlarmStatusColor(alarmWithSignal) }}
+				<div class={ "w-full h-full flex items-center justify-center rounded-sm text-center p-2 " + alarmStatusColor }>
 					<div class="flex flex-col gap-2">
-						<span class="text-xl text-white">{ alertWithSignal.Alert.Name }</span>
-						if len(alertWithSignal.Signals) > 0 {
-							<p class="text-sm text-white">{ alertWithSignal.Signals[len(alertWithSignal.Signals)-1].Message }</p>
+						<span class="text-xl text-white">{ alarmWithSignal.Alarm.Name }</span>
+						if len(alarmWithSignal.Signals) > 0 {
+							<p class="text-sm text-white">{ alarmWithSignal.Signals[len(alarmWithSignal.Signals)-1].Message }</p>
 						}
 					</div>
 				</div>
@@ -49,13 +49,13 @@ templ Treemap(alertsWithSignals []alert.AlertSignals, level int, baseURL string)
 	</div>
 }
 
-func getGroupStatus(alertsWithSignals []alert.AlertSignals) string {
+func getGroupStatus(alarmsWithSignals []alarm.AlarmSignals) string {
 	hasUnhealthy := false
 	allHealthy := true
 
-	for _, alertWithSignal := range alertsWithSignals {
-		if len(alertWithSignal.Signals) > 0 {
-			lastStatus := alertWithSignal.Signals[len(alertWithSignal.Signals)-1].Status
+	for _, alarmWithSignal := range alarmsWithSignals {
+		if len(alarmWithSignal.Signals) > 0 {
+			lastStatus := alarmWithSignal.Signals[len(alarmWithSignal.Signals)-1].Status
 			if lastStatus == "unhealthy" {
 				hasUnhealthy = true
 				break
@@ -77,11 +77,11 @@ func getGroupStatus(alertsWithSignals []alert.AlertSignals) string {
 	}
 }
 
-func getAlertStatusColor(alertSignals alert.AlertSignals) string {
-	if len(alertSignals.Signals) == 0 {
+func getAlarmStatusColor(alarmSignals alarm.AlarmSignals) string {
+	if len(alarmSignals.Signals) == 0 {
 		return "bg-gray-500"
 	}
-	lastStatus := alertSignals.Signals[len(alertSignals.Signals)-1].Status
+	lastStatus := alarmSignals.Signals[len(alarmSignals.Signals)-1].Status
 	if lastStatus == "healthy" {
 		return "bg-green-500"
 	}

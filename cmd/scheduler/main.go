@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/g0ulartleo/mirante-alerts/internal/alert"
+	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	backofficeTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/backoffice"
 	sentinelTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/sentinel"
@@ -12,16 +12,16 @@ import (
 )
 
 func main() {
-	err := alert.InitAlerts()
+	err := alarm.InitAlarms()
 	if err != nil {
 		log.Fatalf("Error initializing sentinel configs: %v", err)
 	}
 	scheduler := asynq.NewScheduler(asynq.RedisClientOpt{Addr: config.Env().RedisAddr}, nil)
 
-	for _, sentinelConfig := range alert.Alerts {
-		task, err := sentinelTasks.NewSentinelCheckAlertTask(sentinelConfig.ID)
+	for _, sentinelConfig := range alarm.Alarms {
+		task, err := sentinelTasks.NewSentinelCheckAlarmTask(sentinelConfig.ID)
 		if err != nil {
-			log.Fatalf("Error creating sentinel check alert task: %v", err)
+			log.Fatalf("Error creating sentinel check alarm task: %v", err)
 		}
 		cronspec := sentinelConfig.Cron
 		if cronspec == "" {
@@ -30,7 +30,7 @@ func main() {
 
 		entryID, err := scheduler.Register(cronspec, task)
 		if err != nil {
-			log.Fatalf("Error registering sentinel check alert task: %v", err)
+			log.Fatalf("Error registering sentinel check alarm task: %v", err)
 		}
 		log.Printf("registered an entry: %q\n", entryID)
 	}

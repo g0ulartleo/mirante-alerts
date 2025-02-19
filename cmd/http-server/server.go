@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/g0ulartleo/mirante-alerts/internal/alert"
+	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
@@ -15,26 +15,26 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func getAlertSignals(signalService *signal.Service) ([]alert.AlertSignals, error) {
-	alertsSignals := make([]alert.AlertSignals, 0)
-	for _, a := range alert.Alerts {
-		signals, err := signalService.GetAlertLatestSignals(a.ID, 1)
+func getAlarmSignals(signalService *signal.Service) ([]alarm.AlarmSignals, error) {
+	alarmsSignals := make([]alarm.AlarmSignals, 0)
+	for _, a := range alarm.Alarms {
+		signals, err := signalService.GetAlarmLatestSignals(a.ID, 1)
 		if err != nil {
-			log.Printf("Error fetching signals for alert %s: %v", a.ID, err)
+			log.Printf("Error fetching signals for alarm %s: %v", a.ID, err)
 			signals = []signal.Signal{}
 		}
-		alertsSignals = append(alertsSignals, alert.AlertSignals{
-			Alert:   *a,
+		alarmsSignals = append(alarmsSignals, alarm.AlarmSignals{
+			Alarm:   *a,
 			Signals: signals,
 		})
 	}
-	return alertsSignals, nil
+	return alarmsSignals, nil
 }
 
 func main() {
-	err := alert.InitAlerts()
+	err := alarm.InitAlarms()
 	if err != nil {
-		log.Fatalf("Error initializing alert configs: %v", err)
+		log.Fatalf("Error initializing alarm configs: %v", err)
 	}
 	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
@@ -49,12 +49,12 @@ func main() {
 	e.Static("/static", "static")
 
 	e.GET("/", func(c echo.Context) error {
-		alertSignals, err := getAlertSignals(signalService)
+		alarmSignals, err := getAlarmSignals(signalService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)
 		}
-		return Render(c, http.StatusOK, templates.Alerts(alertSignals))
+		return Render(c, http.StatusOK, templates.Alarms(alarmSignals))
 	})
 
 	e.GET("/*", func(c echo.Context) error {
@@ -69,13 +69,13 @@ func main() {
 			level = len(segments)
 			baseURL = "/" + pathParam
 		}
-		alertSignals, err := getAlertSignals(signalService)
+		alarmSignals, err := getAlarmSignals(signalService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)
 		}
 
-		return Render(c, http.StatusOK, templates.Treemap(alertSignals, level, baseURL))
+		return Render(c, http.StatusOK, templates.Treemap(alarmSignals, level, baseURL))
 	})
 
 	e.Logger.Fatal(e.Start(config.Env().HTTPAddr + ":" + config.Env().HTTPPort))

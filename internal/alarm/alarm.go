@@ -1,8 +1,8 @@
-package alert
+package alarm
 
 import "github.com/g0ulartleo/mirante-alerts/internal/signal"
 
-type Alert struct {
+type Alarm struct {
 	ID          string
 	Name        string
 	Description string
@@ -13,7 +13,7 @@ type Alert struct {
 	Interval    string
 }
 
-type AlertSignals struct {
-	Alert   Alert
+type AlarmSignals struct {
+	Alarm   Alarm
 	Signals []signal.Signal
 }

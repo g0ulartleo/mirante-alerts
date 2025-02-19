@@ -2,7 +2,7 @@
 cmd/http-server/tmp/
 tmp/
 tailwindcss
-alerts/*
+alarms/*
 **/*_templ.go
 static/css/style.css
 .vscode

@@ -16,10 +16,10 @@ type WebsiteUptimeChecker struct {
     expectedStatus int
 }
 
-func (w WebsiteUptimeChecker) Check(ctx context.Context, alertID string) (signal.Signal, error) {
+func (w WebsiteUptimeChecker) Check(ctx context.Context, alarmID string) (signal.Signal, error) {
     // do something
     return signal.Signal{
-        AlertID: alertID,
+        AlarmID: alarmID,
         Status: signal.StatusHealthy,
         Message: "Website is up",
         Timestamp: time.Now(),
@@ -49,10 +49,10 @@ func init() {
 go build -tags custom ./cmd/worker-server
 ```
 
-4. Create an alert configuration file using the sentinel:
+4. Create an alarm configuration file using the sentinel:
 
 ```yaml
-# alerts/my-website/uptime.yaml
+# alarms/my-website/uptime.yaml
 id: my-website-uptime
 type: website-uptime-checker
 interval: 1m

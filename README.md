@@ -1,16 +1,16 @@
 # mirante-alerts
-mirante-alerts is an open-source, lightweight monitoring system designed to watch over multiple projects and external services, providing simple red/green status indicators based on the health of its alerts.
+mirante-alerts is an open-source, lightweight monitoring system designed to watch over multiple projects and external services, providing simple red/green status indicators based on the health of its alarms.
 
 ## Features
 
-- **Modular Alerts**: Configure alerts via YAML files that define the monitoring strategy, schedule (using intervals or cron expressions), and notification settings.
-- **Tasks Management**: Uses [Asynq](https://github.com/hibiken/asynq) for reliable task processing (for signal writing, checking alerts, etc).
-- **Dashboard**: A dashboard with hierarchical view of alerts.
+- **Modular Alarms**: Configure alarms via YAML files that define the monitoring strategy, schedule (using intervals or cron expressions), and notification settings.
+- **Tasks Management**: Uses [Asynq](https://github.com/hibiken/asynq) for reliable task processing (for signal writing, checking alarms, etc).
+- **Dashboard**: A dashboard with hierarchical view of alarms.
 - **Flexible Signal Storage**: Supports MySQL or Redis for storing signals.
 
 
-## Alerts
-Alerts use sentinels to check for specific aspects of your systems. Each different type of sentinel implements a specific monitoring strategy.
+## Alarms
+Alarms use sentinels to check for specific aspects of your systems. Each different type of sentinel implements a specific monitoring strategy.
 
 ### Built-in Sentinels
 - **EndpointValidator**: Performs HTTP operations on URLs and validates responses based on configuration
@@ -22,7 +22,7 @@ Create new sentinel types by implementing the Sentinel interface:
 
 ```go
 type Sentinel interface {
-    Check(ctx context.Context, alertID string) (Signal, error)
+    Check(ctx context.Context, alarmID string) (Signal, error)
     Configure(config map[string]interface{}) error
 }
 ```
@@ -35,17 +35,16 @@ func init() {
 }
 ```
 
-See the [custom-sentinels](docs/custom-sentinels.md) documentation for details. (TBD)
+See the [custom-sentinels](docs/custom-sentinels.md) documentation for details.
 
 
-### Adding a new alert
-Simply create a new yaml file in the `alerts` directory. The path of the file be reflected in the URL of the alert.
-
+### Adding a new alarm
+Simply create a new yaml file in the `alarms` directory. The path of the file be reflected in the URL of the alarm.
 
 
 ## Components
 
-- **HTTP Server:** Serves the web UI that displays alert status and history. Located in `cmd/http-server/`.
+- **HTTP Server:** Serves the web UI that displays alarm status and history. Located in `cmd/http-server/`.
 - **Worker Server:** Processes background tasks such as writing signals and executing sentinel checks. See `cmd/worker-server/`.
 - **Scheduler:** Registers and executes periodic sentinel checks as well as cleanup tasks. Located in `cmd/scheduler/`.
 
@@ -82,14 +81,14 @@ Simply create a new yaml file in the `alerts` directory. The path of the file be
    go mod download
    ```
 
-4. **Setting Up Alerts**
+4. **Setting Up Alarms**
 
-   Alerts are configured via YAML files in the `alerts` directory. The directory structure reflects the URL path for an alert’s dashboard.
+   Alarms are configured via YAML files in the `alarms` directory. The directory structure reflects the URL path for an alarm’s dashboard.
 
-   Example alert configuration:
+   Example alarm configuration:
    ```yaml
-   id: my-alert
-   name: My Custom Alert
+   id: my-alarm
+   name: My Custom Alarm
    type: endpoint-checker
    config:
      url: "https://example.com"

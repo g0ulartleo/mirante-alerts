@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/g0ulartleo/mirante-alerts/internal/alert"
+	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/builtin"
@@ -16,9 +16,9 @@ import (
 )
 
 func main() {
-	err := alert.InitAlerts()
+	err := alarm.InitAlarms()
 	if err != nil {
-		log.Fatalf("Error initializing alert configs: %v", err)
+		log.Fatalf("Error initializing alarm configs: %v", err)
 	}
 
 	builtin.Register(sentinel.Factory)

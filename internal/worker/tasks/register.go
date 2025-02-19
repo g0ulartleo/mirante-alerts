@@ -11,8 +11,8 @@ import (
 )
 
 func Register(mux *asynq.ServeMux, signalService *signal.Service) {
-	mux.HandleFunc(sentinel.TypeSentinelCheckAlert, func(ctx context.Context, task *asynq.Task) error {
-		return sentinel.HandleSentinelCheckAlertTask(ctx, task, signalService)
+	mux.HandleFunc(sentinel.TypeSentinelCheckAlarm, func(ctx context.Context, task *asynq.Task) error {
+		return sentinel.HandleSentinelCheckAlarmTask(ctx, task, signalService)
 	})
 	mux.HandleFunc(sigTask.TypeSignalWrite, func(ctx context.Context, task *asynq.Task) error {
 		return sigTask.HandleSignalWriteTask(ctx, task, signalService)

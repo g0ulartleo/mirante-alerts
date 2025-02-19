@@ -47,13 +47,13 @@ func (e *EndpointCheckerSentinel) Configure(config map[string]interface{}) error
 	return nil
 }
 
-func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (signal.Signal, error) {
+func (e *EndpointCheckerSentinel) Check(ctx context.Context, alarmID string) (signal.Signal, error) {
 	start := time.Now()
 	response, err := e.client.Get(e.url)
 	responseTime := time.Since(start)
 	if err != nil {
 		return signal.Signal{
-			AlertID:   alertID,
+			AlarmID:   alarmID,
 			Status:    signal.StatusUnhealthy,
 			Timestamp: time.Now(),
 			Message:   fmt.Sprintf("error checking endpoint: %v", err),
@@ -63,7 +63,7 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (si
 
 	if response.StatusCode != e.expectedStatus {
 		return signal.Signal{
-			AlertID:   alertID,
+			AlarmID:   alarmID,
 			Status:    signal.StatusUnhealthy,
 			Timestamp: time.Now(),
 			Message:   fmt.Sprintf("expected status %d, got %d", e.expectedStatus, response.StatusCode),
@@ -74,7 +74,7 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (si
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return signal.Signal{
-				AlertID:   alertID,
+				AlarmID:   alarmID,
 				Status:    signal.StatusUnhealthy,
 				Timestamp: time.Now(),
 				Message:   fmt.Sprintf("error reading body: %v", err),
@@ -83,7 +83,7 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (si
 
 		if string(body) != e.expectedBody {
 			return signal.Signal{
-				AlertID:   alertID,
+				AlarmID:   alarmID,
 				Status:    signal.StatusUnhealthy,
 				Timestamp: time.Now(),
 				Message:   fmt.Sprintf("expected body %s, got %s", e.expectedBody, string(body)),
@@ -92,7 +92,7 @@ func (e *EndpointCheckerSentinel) Check(ctx context.Context, alertID string) (si
 	}
 
 	return signal.Signal{
-		AlertID:   alertID,
+		AlarmID:   alarmID,
 		Status:    signal.StatusHealthy,
 		Timestamp: time.Now(),
 		Message:   fmt.Sprintf("responded status %d in %vms", response.StatusCode, responseTime.Milliseconds()),
