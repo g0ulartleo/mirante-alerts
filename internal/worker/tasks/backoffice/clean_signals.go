@@ -1,4 +1,4 @@
-package tasks
+package backoffice
 
 import (
 	"context"

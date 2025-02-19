@@ -60,3 +60,5 @@ config:
     url: https://example.com
     expected_status: 200
 ```
+
+5. If you feel like more users can benefit from your sentinel, you can add it to the [default sentinel factory](https://github.com/g0ulartleo/mirante-alerts/blob/main/internal/sentinel/builtin/register.go) and open a pull request.

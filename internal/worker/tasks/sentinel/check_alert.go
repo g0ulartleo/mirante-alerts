@@ -1,4 +1,4 @@
-package tasks
+package sentinel
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/g0ulartleo/mirante-alerts/internal/config"
+	"github.com/g0ulartleo/mirante-alerts/internal/alert"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/hibiken/asynq"
@@ -33,7 +33,7 @@ func HandleSentinelCheckAlertTask(ctx context.Context, t *asynq.Task, signalServ
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	alertConfig, err := config.GetAlertConfig(payload.AlertID)
+	alertConfig, err := alert.GetAlertConfig(payload.AlertID)
 	if err != nil {
 		return fmt.Errorf("failed to load alert config: %v: %w", err, asynq.SkipRetry)
 	}

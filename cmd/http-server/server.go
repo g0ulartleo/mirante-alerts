@@ -17,7 +17,7 @@ import (
 
 func getAlertSignals(signalService *signal.Service) ([]alert.AlertSignals, error) {
 	alertsSignals := make([]alert.AlertSignals, 0)
-	for _, a := range config.Alerts {
+	for _, a := range alert.Alerts {
 		signals, err := signalService.GetAlertLatestSignals(a.ID, 1)
 		if err != nil {
 			log.Printf("Error fetching signals for alert %s: %v", a.ID, err)
@@ -32,11 +32,11 @@ func getAlertSignals(signalService *signal.Service) ([]alert.AlertSignals, error
 }
 
 func main() {
-	err := config.InitAlerts()
+	err := alert.InitAlerts()
 	if err != nil {
 		log.Fatalf("Error initializing alert configs: %v", err)
 	}
-	signalStore, err := stores.NewStore(config.LoadSignalsDatabaseConfigFromEnv())
+	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("Error initializing signal store: %v", err)
 	}

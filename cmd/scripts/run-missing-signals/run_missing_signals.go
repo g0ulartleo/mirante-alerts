@@ -5,9 +5,9 @@ import (
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alert"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
+	sentinelTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/sentinel"
 	"github.com/hibiken/asynq"
 )
 
@@ -15,18 +15,18 @@ func RunMissingSignals() {
 	conn := asynq.NewClient(asynq.RedisClientOpt{Addr: config.Env().RedisAddr})
 	defer conn.Close()
 
-	err := config.InitAlerts()
+	err := alert.InitAlerts()
 	if err != nil {
 		log.Fatalf("failed to initialize alert configs: %v", err)
 	}
-	signalStore, err := stores.NewStore(config.LoadSignalsDatabaseConfigFromEnv())
+	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("failed to initialize signal store: %v", err)
 	}
 	defer signalStore.Close()
 	signalService := signal.NewService(signalStore)
 
-	for _, a := range config.Alerts {
+	for _, a := range alert.Alerts {
 		signals, err := signalService.GetAlertLatestSignals(a.ID, 1)
 		if err != nil {
 			log.Fatalf("failed to get latest signals for alert %s: %v", a.ID, err)
@@ -39,7 +39,7 @@ func RunMissingSignals() {
 
 func runSentinel(conn *asynq.Client, a *alert.Alert) {
 	log.Printf("running sentinel %s", a.ID)
-	task, err := tasks.NewSentinelCheckAlertTask(a.ID)
+	task, err := sentinelTasks.NewSentinelCheckAlertTask(a.ID)
 	if err != nil {
 		log.Fatalf("failed to create sentinel check alert task for alert %s: %v", a.ID, err)
 	}

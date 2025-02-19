@@ -7,7 +7,7 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
-func NewStore(cfg *config.SignalsDatabaseConfig) (signal.SignalRepository, error) {
+func NewStore(cfg *config.AppConfig) (signal.SignalRepository, error) {
 	switch cfg.Driver {
 	case "mysql":
 		return NewMySQLSignalRepository(cfg.MySQL)

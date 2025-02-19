@@ -4,21 +4,27 @@ import (
 	"context"
 	"log"
 
+	"github.com/g0ulartleo/mirante-alerts/internal/alert"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
+	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
+	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/builtin"
+	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/custom"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
+	"github.com/g0ulartleo/mirante-alerts/internal/worker/tasks"
 	"github.com/hibiken/asynq"
 )
 
 func main() {
-	err := config.InitAlerts()
+	err := alert.InitAlerts()
 	if err != nil {
 		log.Fatalf("Error initializing alert configs: %v", err)
 	}
-	config.InitSentinelFactory()
 
-	signalStore, err := stores.NewStore(config.LoadSignalsDatabaseConfigFromEnv())
+	builtin.Register(sentinel.Factory)
+	custom.Register(sentinel.Factory)
+
+	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("Error initializing signal store: %v", err)
 	}
@@ -41,15 +47,7 @@ func main() {
 	)
 
 	mux := asynq.NewServeMux()
-	mux.HandleFunc(tasks.TypeSignalWrite, func(ctx context.Context, t *asynq.Task) error {
-		return tasks.HandleSignalWriteTask(ctx, t, signalService)
-	})
-	mux.HandleFunc(tasks.TypeSentinelCheckAlert, func(ctx context.Context, t *asynq.Task) error {
-		return tasks.HandleSentinelCheckAlertTask(ctx, t, signalService)
-	})
-	mux.HandleFunc(tasks.TypeCleanSignals, func(ctx context.Context, t *asynq.Task) error {
-		return tasks.HandleCleanSignalsTask(ctx, t, signalService)
-	})
+	tasks.Register(mux, signalService)
 
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)

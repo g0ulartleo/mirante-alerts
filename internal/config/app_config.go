@@ -3,11 +3,10 @@ package config
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 )
 
-type SignalsDatabaseConfig struct {
+type AppConfig struct {
 	Driver string      `yaml:"driver"`
 	MySQL  MySQLConfig `yaml:"mysql,omitempty"`
 }
@@ -19,21 +18,20 @@ type MySQLConfig struct {
 	Password string `yaml:"password"`
 }
 
-func LoadSignalsDatabaseConfigFromEnv() *SignalsDatabaseConfig {
-	InitEnvLoader()
-	driver := os.Getenv("DB_DRIVER")
+func LoadAppConfigFromEnv() *AppConfig {
+	driver := Env().DBDriver
 	if driver == "" {
 		log.Fatalf("DB_DRIVER environment variable is required")
 	}
 
-	config := &SignalsDatabaseConfig{
+	config := &AppConfig{
 		Driver: driver,
 	}
 
 	switch driver {
 	case "mysql":
 		var port int
-		if portStr := os.Getenv("DB_PORT"); portStr != "" {
+		if portStr := Env().DBPort; portStr != "" {
 			p, err := strconv.Atoi(portStr)
 			if err != nil {
 				log.Fatalf("invalid DB_PORT: %v", err)
@@ -44,22 +42,22 @@ func LoadSignalsDatabaseConfigFromEnv() *SignalsDatabaseConfig {
 		}
 
 		config.MySQL = MySQLConfig{
-			Host:     os.Getenv("DB_HOST"),
+			Host:     Env().DBHost,
 			Port:     port,
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
+			User:     Env().DBUser,
+			Password: Env().DBPassword,
 		}
 	default:
 		log.Fatalf("unsupported driver: %s", driver)
 	}
 
 	if err := validateConfig(config); err != nil {
-		log.Fatalf("invalid signals database config: %v", err)
+		log.Fatalf("invalid app config: %v", err)
 	}
 	return config
 }
 
-func validateConfig(config *SignalsDatabaseConfig) error {
+func validateConfig(config *AppConfig) error {
 	switch config.Driver {
 	case "mysql":
 		if config.MySQL.Host == "" {

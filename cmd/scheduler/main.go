@@ -4,20 +4,22 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/g0ulartleo/mirante-alerts/internal/alert"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-	"github.com/g0ulartleo/mirante-alerts/internal/event_dispatcher/tasks"
+	backofficeTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/backoffice"
+	sentinelTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/sentinel"
 	"github.com/hibiken/asynq"
 )
 
 func main() {
-	err := config.InitAlerts()
+	err := alert.InitAlerts()
 	if err != nil {
 		log.Fatalf("Error initializing sentinel configs: %v", err)
 	}
 	scheduler := asynq.NewScheduler(asynq.RedisClientOpt{Addr: config.Env().RedisAddr}, nil)
 
-	for _, sentinelConfig := range config.Alerts {
-		task, err := tasks.NewSentinelCheckAlertTask(sentinelConfig.ID)
+	for _, sentinelConfig := range alert.Alerts {
+		task, err := sentinelTasks.NewSentinelCheckAlertTask(sentinelConfig.ID)
 		if err != nil {
 			log.Fatalf("Error creating sentinel check alert task: %v", err)
 		}
@@ -33,7 +35,7 @@ func main() {
 		log.Printf("registered an entry: %q\n", entryID)
 	}
 
-	cleanSignalsTask, err := tasks.NewCleanSignalsTask()
+	cleanSignalsTask, err := backofficeTasks.NewCleanSignalsTask()
 	if err != nil {
 		log.Fatalf("Error creating clean signals task: %v", err)
 	}
