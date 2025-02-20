@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-	sentinelTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/sentinel"
+	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
 	"github.com/hibiken/asynq"
 )
 
@@ -19,7 +19,7 @@ func main() {
 
 	alarmID := os.Args[1]
 
-	task, err := sentinelTasks.NewSentinelCheckAlarmTask(alarmID)
+	task, err := alarmTasks.NewCheckAlarmTask(alarmID)
 	if err != nil {
 		log.Fatalf("Failed to create task: %v", err)
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
-	sentinelTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/sentinel"
+	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
 	"github.com/hibiken/asynq"
 )
 
@@ -39,7 +39,7 @@ func RunMissingSignals() {
 
 func runSentinel(conn *asynq.Client, a *alarm.Alarm) {
 	log.Printf("running sentinel %s", a.ID)
-	task, err := sentinelTasks.NewSentinelCheckAlarmTask(a.ID)
+	task, err := alarmTasks.NewCheckAlarmTask(a.ID)
 	if err != nil {
 		log.Fatalf("failed to create check alarm task for alarm %s: %v", a.ID, err)
 	}

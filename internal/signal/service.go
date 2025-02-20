@@ -16,6 +16,20 @@ func (s *Service) GetAlarmLatestSignals(alarmID string, limit int) ([]Signal, er
 	return s.repo.GetAlarmLatestSignals(alarmID, limit)
 }
 
+func (s *Service) AlarmHasChangedStatus(alarmID string) (bool, error) {
+	signals, err := s.GetAlarmLatestSignals(alarmID, 2)
+	if err != nil {
+		return false, err
+	}
+	if len(signals) == 0 {
+		return false, nil
+	}
+	if len(signals) == 1 {
+		return true, nil
+	}
+	return signals[0].Status != signals[1].Status, nil
+}
+
 func (s *Service) GetAlarmHealth(alarmID string) (Status, error) {
 	return s.repo.GetAlarmHealth(alarmID)
 }

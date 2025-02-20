@@ -8,7 +8,6 @@ mirante-alerts is an open-source, lightweight monitoring system designed to watc
 - **Dashboard**: A dashboard with hierarchical view of alarms.
 - **Flexible Signal Storage**: Supports MySQL or Redis for storing signals.
 
-
 ## Alarms
 Alarms use sentinels to check for specific aspects of your systems. Each different type of sentinel implements a specific monitoring strategy.
 
@@ -75,6 +74,11 @@ Simply create a new yaml file in the `alarms` directory. The path of the file be
      - `DB_PORT`
      - `DB_USER`
      - `DB_PASSWORD`
+   - For email notifications:
+     - `SMTP_HOST`
+     - `SMTP_PORT`
+     - `SMTP_USER`
+     - `SMTP_PASSWORD`
 
 3. **Install Dependencies**
    ```bash
@@ -89,12 +93,21 @@ Simply create a new yaml file in the `alarms` directory. The path of the file be
    ```yaml
    id: my-alarm
    name: My Custom Alarm
+   description: "Expects a 200 status code and a body containing 'OK'"
    type: endpoint-checker
+   interval: "30s"        # Alternatively, specify a cron expression in the `cron` field
    config:
      url: "https://example.com"
      expected_status: 200
      expected_body: "OK"  # Optional
-   interval: "30s"        # Alternatively, specify a cron expression in the `cron` field
+   notifications:
+      notify_missing_signals: false
+      email:
+         to: 
+            - "test@example.com"
+            - "test2@example.com"
+      slack:
+         webhook_url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXX"
    ```
 
 ## License

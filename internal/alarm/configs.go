@@ -32,12 +32,12 @@ func InitAlarms() error {
 
 	err := filepath.Walk("alarms", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("failed to walk alarms: %v", err)
+			return fmt.Errorf("failed to walk alarms: %w", err)
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".yml") {
 			config, err := loadAlarmConfig(path)
 			if err != nil {
-				return fmt.Errorf("failed to load config from %s: %v", path, err)
+				return fmt.Errorf("failed to load config from %s: %w", path, err)
 			}
 			log.Printf("loaded alarm id %s from path %s", config.ID, path)
 			Alarms[config.ID] = config
@@ -45,7 +45,7 @@ func InitAlarms() error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("failed to load alarms: %v", err)
+		return fmt.Errorf("failed to load alarms: %w", err)
 	}
 	return nil
 }
@@ -53,13 +53,12 @@ func InitAlarms() error {
 func loadAlarmConfig(path string) (*Alarm, error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
-		// lookup difference between %w and %v
 		return nil, fmt.Errorf("failed to read yml file: %w", err)
 	}
 	var alarm *Alarm
 	err = yaml.Unmarshal(yamlFile, &alarm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal yml file: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal yml file: %w", err)
 	}
 	if alarm.Interval == "" && alarm.Cron == "" {
 		return nil, fmt.Errorf("misconfiguration for alarm %s: interval or cron is required", alarm.ID)
@@ -70,7 +69,7 @@ func loadAlarmConfig(path string) (*Alarm, error) {
 	if alarm.Interval != "" {
 		interval, err := time.ParseDuration(alarm.Interval)
 		if err != nil {
-			return nil, fmt.Errorf("misconfiguration for alarm %s: failed to parse interval: %v", alarm.ID, err)
+			return nil, fmt.Errorf("misconfiguration for alarm %s: failed to parse interval: %w", alarm.ID, err)
 		}
 		alarm.Cron = fmt.Sprintf("@every %s", interval)
 	}
