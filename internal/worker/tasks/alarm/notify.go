@@ -40,7 +40,7 @@ func HandleNotifyTask(ctx context.Context, t *asynq.Task) error {
 	errors := notification.DispatchAlarmNotifications(alarmConfig, payload.Signal)
 	if len(errors) > 0 {
 		for _, err := range errors {
-			fmt.Println(err)
+			fmt.Println("error dispatching alarm notification: %w", err)
 		}
 		return fmt.Errorf("failed to dispatch alarm notifications: %v", errors)
 	}

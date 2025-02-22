@@ -82,6 +82,5 @@ func initializeSentinel(alarmConfig *alarm.Alarm) (sentinel.Sentinel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure sentinel: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Sentinel configured for alarm ID %s", alarmConfig.ID)
 	return sentinel, nil
 }
