@@ -12,6 +12,10 @@ help:
 go-install-air:
 	go install github.com/air-verse/air@latest
 
+.PHONY: go-install-templ
+go-install-templ:
+	go install github.com/a-h/templ/cmd/templ@latest
+
 .PHONY: install-tailwind
 install-tailwind:
 	@if [ "$$(uname)" = "Darwin" ]; then \
@@ -54,3 +58,10 @@ build-worker-mysql:
 .PHONY: build-scheduler
 build-scheduler:
 	go build -o ./bin/scheduler ./cmd/scheduler/main.go
+
+.PHONY: build
+build:
+	go build -o ./bin/http-server ./cmd/http-server/server.go
+	go build -o ./bin/worker ./cmd/worker-server/main.go
+	go build -o ./bin/scheduler ./cmd/scheduler/main.go
+	go build -o ./bin/cli ./cmd/cli/main.go

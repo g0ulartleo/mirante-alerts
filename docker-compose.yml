@@ -3,10 +3,34 @@ services:
     image: redis:7.2-alpine
     ports:
       - 6379:6379
-  
-  signals-database:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: root
+    env_file:
+      - .env
+
+  web:
+    build: .
+    command: air -c .air.toml
     ports:
-      - 3306:3306
+      - 40169:40169
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    environment:
+      - AIR_FORCE_BUILD=true
+
+  worker:
+    build: .
+    command: go run cmd/worker-server/main.go
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
+  scheduler:
+    build: .
+    command: go run cmd/scheduler/main.go
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
