@@ -2,10 +2,9 @@
 cmd/http-server/tmp/
 tmp/
 tailwindcss
-alarms/*
 **/*_templ.go
 static/css/style.css
 .vscode
-
-internal/sentinel/custom/*.go
-!internal/sentinel/custom/register.go
+bin/
+sqlite.db
+config/

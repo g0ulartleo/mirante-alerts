@@ -31,10 +31,10 @@ func LoadAppConfigFromEnv() *AppConfig {
 	switch driver {
 	case "mysql":
 		var port int
-		if portStr := Env().DBPort; portStr != "" {
+		if portStr := Env().MySQLDBPort; portStr != "" {
 			p, err := strconv.Atoi(portStr)
 			if err != nil {
-				log.Fatalf("invalid DB_PORT: %v", err)
+				log.Fatalf("invalid MYSQL_DB_PORT: %v", err)
 			}
 			port = p
 		} else {
@@ -42,11 +42,15 @@ func LoadAppConfigFromEnv() *AppConfig {
 		}
 
 		config.MySQL = MySQLConfig{
-			Host:     Env().DBHost,
+			Host:     Env().MySQLDBHost,
 			Port:     port,
-			User:     Env().DBUser,
-			Password: Env().DBPassword,
+			User:     Env().MySQLDBUser,
+			Password: Env().MySQLDBPassword,
 		}
+	case "sqlite":
+		return config
+	case "redis":
+		return config
 	default:
 		log.Fatalf("unsupported driver: %s", driver)
 	}
@@ -72,6 +76,10 @@ func validateConfig(config *AppConfig) error {
 		if config.MySQL.Password == "" {
 			return fmt.Errorf("mysql password is required")
 		}
+	case "sqlite":
+		return nil
+	case "redis":
+		return nil
 	default:
 		return fmt.Errorf("unsupported driver: %s", config.Driver)
 	}

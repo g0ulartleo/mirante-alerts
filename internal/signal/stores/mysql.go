@@ -1,5 +1,3 @@
-//go:build mysql
-
 package stores
 
 import (
@@ -9,7 +7,6 @@ import (
 
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type MySQLSignalRepository struct {
@@ -29,7 +26,6 @@ func NewMySQLSignalRepository(cfg config.MySQLConfig) (signal.SignalRepository, 
 	if err := repo.Init(); err != nil {
 		return nil, err
 	}
-	db.Close()
 
 	dsnWithDB := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", cfg.User, cfg.Password, cfg.Host, cfg.Port, signalsDatabase)
 	conn, err := sql.Open("mysql", dsnWithDB)

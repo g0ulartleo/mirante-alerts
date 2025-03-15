@@ -7,10 +7,10 @@ import (
 
 type Environment struct {
 	DBDriver     string
-	DBPort       string
-	DBHost       string
-	DBUser       string
-	DBPassword   string
+	MySQLDBPort       string
+	MySQLDBHost       string
+	MySQLDBUser       string
+	MySQLDBPassword   string
 	RedisAddr    string
 	HTTPPort     string
 	HTTPAddr     string
@@ -41,10 +41,10 @@ func Env() *Environment {
 	once.Do(func() {
 		env = &Environment{
 			DBDriver:     os.Getenv("DB_DRIVER"),
-			DBPort:       os.Getenv("DB_PORT"),
-			DBHost:       os.Getenv("DB_HOST"),
-			DBUser:       os.Getenv("DB_USER"),
-			DBPassword:   os.Getenv("DB_PASSWORD"),
+			MySQLDBHost:       os.Getenv("MYSQL_DB_HOST"),
+			MySQLDBPort:       os.Getenv("MYSQL_DB_PORT"),
+			MySQLDBUser:       os.Getenv("MYSQL_DB_USER"),
+			MySQLDBPassword:   os.Getenv("MYSQL_DB_PASSWORD"),
 			RedisAddr:    getEnvOrDefault("REDIS_ADDR", "127.0.0.1:6379"),
 			HTTPPort:     getEnvOrDefault("HTTP_PORT", "40169"),
 			HTTPAddr:     getEnvOrDefault("HTTP_ADDR", "127.0.0.1"),

@@ -9,6 +9,10 @@ import (
 
 func NewStore(cfg *config.AppConfig) (signal.SignalRepository, error) {
 	switch cfg.Driver {
+	case "sqlite":
+		return NewSQLiteSignalRepository()
+	case "redis":
+		return NewRedisSignalRepository()
 	case "mysql":
 		return NewMySQLSignalRepository(cfg.MySQL)
 	case "memory":
