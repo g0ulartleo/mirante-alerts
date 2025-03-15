@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
+	alarmStores "github.com/g0ulartleo/mirante-alerts/internal/alarm/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
 	backofficeTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/backoffice"
@@ -12,13 +13,23 @@ import (
 )
 
 func main() {
-	err := alarm.InitAlarms()
+	alarmStore, err := alarmStores.NewAlarmStore()
+	if err != nil {
+		log.Fatalf("Error initializing alarm store: %v", err)
+	}
+	defer alarmStore.Close()
+	alarmService := alarm.NewAlarmService(alarmStore)
+	err = alarm.InitAlarms(alarmStore)
 	if err != nil {
 		log.Fatalf("Error initializing sentinel configs: %v", err)
 	}
 	scheduler := asynq.NewScheduler(asynq.RedisClientOpt{Addr: config.Env().RedisAddr}, nil)
 
-	for _, sentinelConfig := range alarm.Alarms {
+	alarms, err := alarmService.GetAlarms()
+	if err != nil {
+		log.Fatalf("Error getting alarms: %v", err)
+	}
+	for _, sentinelConfig := range alarms {
 		task, err := alarmTasks.NewCheckAlarmTask(sentinelConfig.ID)
 		if err != nil {
 			log.Fatalf("Error creating alarm check task: %v", err)

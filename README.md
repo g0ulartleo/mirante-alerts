@@ -38,7 +38,7 @@ See the [custom-sentinels](docs/custom-sentinels.md) documentation for details.
 
 
 ### Adding a new alarm
-Simply create a new yaml file in the `alarms` directory. The path of the file be reflected in the URL of the alarm.
+Simply create a new yaml file in the `config/alarms` directory. The path of the file be reflected in the URL of the alarm.
 
 
 ## Components
@@ -46,6 +46,7 @@ Simply create a new yaml file in the `alarms` directory. The path of the file be
 - **HTTP Server:** Serves the web UI that displays alarm status and history. Located in `cmd/http-server/`.
 - **Worker Server:** Processes background tasks such as writing signals and executing sentinel checks. See `cmd/worker-server/`.
 - **Scheduler:** Registers and executes periodic sentinel checks as well as cleanup tasks. Located in `cmd/scheduler/`.
+- **CLI:** A command-line interface for managing alarms and signals. See `cmd/cli/`.
 
 ## Getting Started
 
@@ -53,7 +54,7 @@ Simply create a new yaml file in the `alarms` directory. The path of the file be
 
 - **Go:** The project is built with Go (see `go.mod` for version, currently Go 1.23.6).
 - **Redis:** Required for task queue management.
-- **MySQL:** Required if you choose to use MySQL for signal storage (use the `mysql` driver build tag when needed).
+- **MySQL:** Required if you choose to use MySQL for signal storage.
 - **Docker (Optional):** For running Redis and MySQL via Docker Compose.
 
 ### Installation
@@ -66,9 +67,9 @@ Simply create a new yaml file in the `alarms` directory. The path of the file be
 
 2. **Configure Environment Variables**
 
-   Create a `.env` file or set environment variables as necessary. Some important variables include:
+   Create a `.env` file or set environment variables as necessary. The following variables are available:
    - `REDIS_ADDR` (default: `127.0.0.1:6379`)
-   - `DB_DRIVER` (set to `mysql` or `memory`)
+   - `DB_DRIVER` (set to `mysql` or `sqlite`)
    - For MySQL storage:
      - `DB_HOST`
      - `DB_PORT`
@@ -87,23 +88,21 @@ Simply create a new yaml file in the `alarms` directory. The path of the file be
 
 4. **Setting Up Alarms**
 
-   Alarms are configured via YAML files in the `alarms` directory. The directory structure reflects the URL path for an alarm’s dashboard.
+   Alarms are configured via YAML files in the `config/alarms` directory. The directory structure reflects the URL path for an alarm’s dashboard.
 
    Example alarm configuration:
    ```yaml
    id: my-alarm
    name: My Custom Alarm
-   description: "Expects a 200 status code and a body containing 'OK'"
+   description: "Expects a 200 status code from some API"
    type: endpoint-checker
    interval: "30s"        # Alternatively, specify a cron expression in the `cron` field
    config:
      url: "https://example.com"
      expected_status: 200
-     expected_body: "OK"  # Optional
    notifications:
-      notify_missing_signals: false
       email:
-         to: 
+         to:
             - "test@example.com"
             - "test2@example.com"
       slack:

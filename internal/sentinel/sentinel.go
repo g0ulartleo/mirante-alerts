@@ -8,5 +8,5 @@ import (
 
 type Sentinel interface {
 	Check(ctx context.Context, alarmID string) (signal.Signal, error)
-	Configure(config map[string]interface{}) error
+	Configure(config map[string]any) error
 }

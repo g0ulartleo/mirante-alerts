@@ -28,12 +28,12 @@ func NewNotifyTask(alarmID string, sig signal.Signal) (*asynq.Task, error) {
 	return asynq.NewTask(TypeNotify, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleNotifyTask(ctx context.Context, t *asynq.Task) error {
+func HandleNotifyTask(ctx context.Context, t *asynq.Task, alarmService *alarm.AlarmService) error {
 	var payload NotifyPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %w", err)
 	}
-	alarmConfig, err := alarm.GetAlarmConfig(payload.AlarmID)
+	alarmConfig, err := alarmService.GetAlarm(payload.AlarmID)
 	if err != nil {
 		return fmt.Errorf("failed to get alarm config: %w", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
+	alarmStores "github.com/g0ulartleo/mirante-alerts/internal/alarm/stores"
 )
 
 type ListAlarmsCommand struct{}
@@ -13,11 +14,21 @@ func (c *ListAlarmsCommand) Name() string {
 }
 
 func (c *ListAlarmsCommand) Run(args []string) error {
-	if err := alarm.InitAlarms(); err != nil {
+	alarmStore, err := alarmStores.NewAlarmStore()
+	if err != nil {
 		return fmt.Errorf("failed to initialize alarms: %w", err)
 	}
-
-	for _, a := range alarm.Alarms {
+	defer alarmStore.Close()
+	alarmService := alarm.NewAlarmService(alarmStore)
+	err = alarm.InitAlarms(alarmStore)
+	if err != nil {
+		return fmt.Errorf("failed to initialize alarms: %w", err)
+	}
+	alarms, err := alarmService.GetAlarms()
+	if err != nil {
+		return fmt.Errorf("failed to get alarms: %w", err)
+	}
+	for _, a := range alarms {
 		fmt.Printf("%s -> %s\n", a.ID, a.Description)
 	}
 	return nil

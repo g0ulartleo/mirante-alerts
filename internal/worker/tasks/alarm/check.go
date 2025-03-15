@@ -28,12 +28,12 @@ func NewCheckAlarmTask(alarmID string) (*asynq.Task, error) {
 	return asynq.NewTask(TypeCheckAlarm, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleCheckAlarmTask(ctx context.Context, t *asynq.Task, signalService *signal.Service, asyncClient *asynq.Client) error {
+func HandleCheckAlarmTask(ctx context.Context, t *asynq.Task, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) error {
 	var payload CheckAlarmPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	alarmConfig, err := alarm.GetAlarmConfig(payload.AlarmID)
+	alarmConfig, err := alarmService.GetAlarm(payload.AlarmID)
 	if err != nil {
 		return fmt.Errorf("failed to load alarm config: %v: %w", err, asynq.SkipRetry)
 	}

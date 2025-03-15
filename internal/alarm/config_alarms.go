@@ -11,26 +11,26 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var (
-	Alarms map[string]*Alarm
-)
-
-func GetAlarmConfig(id string) (*Alarm, error) {
-	config, ok := Alarms[id]
-	if !ok {
-		return nil, fmt.Errorf("alarm config not found for id: %s", id)
+func InitAlarms(alarmRepository AlarmRepository) error {
+	alarms, err := getFileBasedAlarms()
+	if err != nil {
+		return fmt.Errorf("failed to get file based alarms: %w", err)
 	}
-	return config, nil
+	for _, alarm := range alarms {
+		err := alarmRepository.SetAlarm(alarm)
+		if err != nil {
+			return fmt.Errorf("failed to save alarm: %w", err)
+		}
+	}
+	return nil
 }
 
-func InitAlarms() error {
-	Alarms = make(map[string]*Alarm)
-
-	if _, err := os.Stat("alarms"); os.IsNotExist(err) {
-		return fmt.Errorf("alarms directory does not exist")
+func getFileBasedAlarms() ([]*Alarm, error) {
+	if _, err := os.Stat("config/alarms"); os.IsNotExist(err) {
+		return nil, nil
 	}
-
-	err := filepath.Walk("alarms", func(path string, info os.FileInfo, err error) error {
+	alarms := make([]*Alarm, 0)
+	err := filepath.Walk("config/alarms", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("failed to walk alarms: %w", err)
 		}
@@ -40,14 +40,14 @@ func InitAlarms() error {
 				return fmt.Errorf("failed to load config from %s: %w", path, err)
 			}
 			log.Printf("loaded alarm id %s from path %s", config.ID, path)
-			Alarms[config.ID] = config
+			alarms = append(alarms, config)
 		}
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("failed to load alarms: %w", err)
+		return nil, fmt.Errorf("failed to walk alarms: %w", err)
 	}
-	return nil
+	return alarms, nil
 }
 
 func loadAlarmConfig(path string) (*Alarm, error) {
@@ -73,6 +73,6 @@ func loadAlarmConfig(path string) (*Alarm, error) {
 		}
 		alarm.Cron = fmt.Sprintf("@every %s", interval)
 	}
-	alarm.Path = strings.Split(path, "/")[1 : len(strings.Split(path, "/"))-1]
+	alarm.Path = strings.Split(path, "/")[2 : len(strings.Split(path, "/"))-1]
 	return alarm, nil
 }

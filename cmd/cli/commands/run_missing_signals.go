@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
+	alarmStores "github.com/g0ulartleo/mirante-alerts/internal/alarm/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
+	signalStores "github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
 	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
 	"github.com/hibiken/asynq"
 )
@@ -21,19 +22,28 @@ func (c *RunMissingSignalsCommand) Name() string {
 func (c *RunMissingSignalsCommand) Run(args []string) error {
 	conn := asynq.NewClient(asynq.RedisClientOpt{Addr: config.Env().RedisAddr})
 	defer conn.Close()
-
-	err := alarm.InitAlarms()
+	alarmStore, err := alarmStores.NewAlarmStore()
+	if err != nil {
+		return fmt.Errorf("failed to initialize alarm store: %v", err)
+	}
+	defer alarmStore.Close()
+	alarmService := alarm.NewAlarmService(alarmStore)
+	err = alarm.InitAlarms(alarmStore)
 	if err != nil {
 		return fmt.Errorf("failed to initialize alarm configs: %v", err)
 	}
-	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
+	signalStore, err := signalStores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
 		return fmt.Errorf("failed to initialize signal store: %v", err)
 	}
 	defer signalStore.Close()
 	signalService := signal.NewService(signalStore)
 
-	for _, a := range alarm.Alarms {
+	alarms, err := alarmService.GetAlarms()
+	if err != nil {
+		return fmt.Errorf("failed to get alarms: %v", err)
+	}
+	for _, a := range alarms {
 		signals, err := signalService.GetAlarmLatestSignals(a.ID, 1)
 		if err != nil {
 			return fmt.Errorf("failed to get latest signals for alarm %s: %v", a.ID, err)

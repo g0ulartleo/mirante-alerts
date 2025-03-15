@@ -8,7 +8,7 @@ type Alarm struct {
 	Description   string                 `yaml:"description"`
 	Path          []string               `yaml:"-"`
 	Type          string                 `yaml:"type"`
-	Config        map[string]interface{} `yaml:"config"`
+	Config        map[string]any         `yaml:"config"`
 	Cron          string                 `yaml:"cron"`
 	Interval      string                 `yaml:"interval"`
 	Notifications AlarmNotifications     `yaml:"notifications"`

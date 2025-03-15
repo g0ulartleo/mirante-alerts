@@ -7,17 +7,22 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
+	alarmStores "github.com/g0ulartleo/mirante-alerts/internal/alarm/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
+	signalStores "github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/templates"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func getAlarmSignals(signalService *signal.Service) ([]alarm.AlarmSignals, error) {
+func getAlarmSignals(signalService *signal.Service, alarmService *alarm.AlarmService) ([]alarm.AlarmSignals, error) {
 	alarmsSignals := make([]alarm.AlarmSignals, 0)
-	for _, a := range alarm.Alarms {
+	alarms, err := alarmService.GetAlarms()
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range alarms {
 		signals, err := signalService.GetAlarmLatestSignals(a.ID, 1)
 		if err != nil {
 			log.Printf("Error fetching signals for alarm %s: %v", a.ID, err)
@@ -32,11 +37,17 @@ func getAlarmSignals(signalService *signal.Service) ([]alarm.AlarmSignals, error
 }
 
 func main() {
-	err := alarm.InitAlarms()
+	alarmStore, err := alarmStores.NewAlarmStore()
+	if err != nil {
+		log.Fatalf("Error initializing alarm store: %v", err)
+	}
+	defer alarmStore.Close()
+	alarmService := alarm.NewAlarmService(alarmStore)
+	err = alarm.InitAlarms(alarmStore)
 	if err != nil {
 		log.Fatalf("Error initializing alarm configs: %v", err)
 	}
-	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
+	signalStore, err := signalStores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("Error initializing signal store: %v", err)
 	}
@@ -49,7 +60,7 @@ func main() {
 	e.Static("/static", "static")
 
 	e.GET("/", func(c echo.Context) error {
-		alarmSignals, err := getAlarmSignals(signalService)
+		alarmSignals, err := getAlarmSignals(signalService, alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)
@@ -69,7 +80,7 @@ func main() {
 			level = len(segments)
 			baseURL = "/" + pathParam
 		}
-		alarmSignals, err := getAlarmSignals(signalService)
+		alarmSignals, err := getAlarmSignals(signalService, alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)

@@ -5,26 +5,31 @@ import (
 	"log"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
+	alarmStores "github.com/g0ulartleo/mirante-alerts/internal/alarm/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/builtin"
-	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/custom"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	"github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
+	signalStores "github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
 	"github.com/g0ulartleo/mirante-alerts/internal/worker/tasks"
 	"github.com/hibiken/asynq"
 )
 
 func main() {
-	err := alarm.InitAlarms()
+	alarmStore, err := alarmStores.NewAlarmStore()
+	if err != nil {
+		log.Fatalf("Error initializing alarm store: %v", err)
+	}
+	defer alarmStore.Close()
+	alarmService := alarm.NewAlarmService(alarmStore)
+	err = alarm.InitAlarms(alarmStore)
 	if err != nil {
 		log.Fatalf("Error initializing alarm configs: %v", err)
 	}
 
 	builtin.Register(sentinel.Factory)
-	custom.Register(sentinel.Factory)
 
-	signalStore, err := stores.NewStore(config.LoadAppConfigFromEnv())
+	signalStore, err := signalStores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("Error initializing signal store: %v", err)
 	}
@@ -50,7 +55,7 @@ func main() {
 	)
 
 	mux := asynq.NewServeMux()
-	tasks.Register(mux, signalService, asyncClient)
+	tasks.Register(mux, signalService, alarmService, asyncClient)
 
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)
