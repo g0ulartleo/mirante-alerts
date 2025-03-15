@@ -28,9 +28,8 @@ func (c *RunMissingSignalsCommand) Run(args []string) error {
 	}
 	defer alarmStore.Close()
 	alarmService := alarm.NewAlarmService(alarmStore)
-	err = alarm.InitAlarms(alarmStore)
-	if err != nil {
-		return fmt.Errorf("failed to initialize alarm configs: %v", err)
+	if err := alarmService.InitAlarms(); err != nil {
+		return fmt.Errorf("failed to initialize alarms: %v", err)
 	}
 	signalStore, err := signalStores.NewStore(config.LoadAppConfigFromEnv())
 	if err != nil {

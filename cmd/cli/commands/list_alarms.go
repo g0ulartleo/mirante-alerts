@@ -20,8 +20,7 @@ func (c *ListAlarmsCommand) Run(args []string) error {
 	}
 	defer alarmStore.Close()
 	alarmService := alarm.NewAlarmService(alarmStore)
-	err = alarm.InitAlarms(alarmStore)
-	if err != nil {
+	if err := alarmService.InitAlarms(); err != nil {
 		return fmt.Errorf("failed to initialize alarms: %w", err)
 	}
 	alarms, err := alarmService.GetAlarms()

@@ -11,30 +11,11 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	signalStores "github.com/g0ulartleo/mirante-alerts/internal/signal/stores"
-	"github.com/g0ulartleo/mirante-alerts/internal/templates"
+	"github.com/g0ulartleo/mirante-alerts/internal/web"
+	"github.com/g0ulartleo/mirante-alerts/internal/web/templates"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
-
-func getAlarmSignals(signalService *signal.Service, alarmService *alarm.AlarmService) ([]alarm.AlarmSignals, error) {
-	alarmsSignals := make([]alarm.AlarmSignals, 0)
-	alarms, err := alarmService.GetAlarms()
-	if err != nil {
-		return nil, err
-	}
-	for _, a := range alarms {
-		signals, err := signalService.GetAlarmLatestSignals(a.ID, 1)
-		if err != nil {
-			log.Printf("Error fetching signals for alarm %s: %v", a.ID, err)
-			signals = []signal.Signal{}
-		}
-		alarmsSignals = append(alarmsSignals, alarm.AlarmSignals{
-			Alarm:   *a,
-			Signals: signals,
-		})
-	}
-	return alarmsSignals, nil
-}
 
 func main() {
 	alarmStore, err := alarmStores.NewAlarmStore()
@@ -60,7 +41,7 @@ func main() {
 	e.Static("/static", "static")
 
 	e.GET("/", func(c echo.Context) error {
-		alarmSignals, err := getAlarmSignals(signalService, alarmService)
+		alarmSignals, err := web.GetAlarmSignals(signalService, alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)
@@ -80,7 +61,7 @@ func main() {
 			level = len(segments)
 			baseURL = "/" + pathParam
 		}
-		alarmSignals, err := getAlarmSignals(signalService, alarmService)
+		alarmSignals, err := web.GetAlarmSignals(signalService, alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)

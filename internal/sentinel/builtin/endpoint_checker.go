@@ -37,7 +37,13 @@ func (e *EndpointCheckerSentinel) Configure(config map[string]interface{}) error
 		e.url = url.(string)
 	}
 	if expectedStatus, ok := config["expected_status"]; ok {
-		e.expectedStatus = expectedStatus.(int)
+		if status, ok := expectedStatus.(float64); ok {
+			e.expectedStatus = int(status)
+		} else if status, ok := expectedStatus.(int); ok {
+			e.expectedStatus = status
+		} else {
+			return fmt.Errorf("expected_status must be a number")
+		}
 	} else {
 		e.expectedStatus = DefaultExpectedStatus
 	}
