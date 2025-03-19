@@ -5,10 +5,12 @@ services:
       - 6379:6379
     env_file:
       - .env
+    volumes:
+      - ./.redis-data:/data
 
   web:
     build: .
-    command: air -c .air.toml
+    command: air -c .air/.air.toml
     ports:
       - 40169:40169
     env_file:
@@ -20,15 +22,17 @@ services:
 
   worker:
     build: .
-    command: go run cmd/worker-server/main.go
+    command: air -c .air/.worker.air.toml
     env_file:
       - .env
     volumes:
       - .:/app
+    environment:
+      - AIR_FORCE_BUILD=true
 
   scheduler:
     build: .
-    command: go run cmd/scheduler/main.go
+    command: go run -tags=dev cmd/scheduler/main.go
     env_file:
       - .env
     volumes:

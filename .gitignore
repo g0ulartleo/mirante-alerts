@@ -7,4 +7,5 @@ static/css/style.css
 .vscode
 bin/
 sqlite.db
-config/
+.redis-data/
+./config/
