@@ -1,6 +1,10 @@
 package commands
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/g0ulartleo/mirante-alerts/internal/cli"
+)
 
 type HelpCommand struct{}
 
@@ -10,7 +14,7 @@ func (c *HelpCommand) Name() string {
 
 func (c *HelpCommand) Run(args []string) error {
 	commands := []string{}
-	for name := range *commandsRegistry {
+	for name := range *cli.Registry {
 		commands = append(commands, name)
 	}
 	fmt.Printf("Available commands: %v\n", commands)
@@ -19,5 +23,5 @@ func (c *HelpCommand) Run(args []string) error {
 
 func init() {
 	c := &HelpCommand{}
-	Register(c.Name(), c)
+	cli.RegisterCommand(c.Name(), c)
 }

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/g0ulartleo/mirante-alerts/internal/cli"
+	"github.com/g0ulartleo/mirante-alerts/internal/cli/api_client"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
-	"github.com/hibiken/asynq"
 )
 
 type CheckAlarmCommand struct{}
@@ -20,18 +20,14 @@ func (c *CheckAlarmCommand) Run(args []string) error {
 		return fmt.Errorf("usage: ./cli %s <alarm-id>", c.Name())
 	}
 
-	conn := asynq.NewClient(asynq.RedisClientOpt{Addr: config.Env().RedisAddr})
-	defer conn.Close()
-
 	alarmID := args[0]
-
-	task, err := alarmTasks.NewCheckAlarmTask(alarmID)
+	config, err := config.LoadCLIConfig()
 	if err != nil {
-		return fmt.Errorf("failed to create task: %v", err)
+		return fmt.Errorf("failed to load CLI config: %v", err)
 	}
-
-	if _, err := conn.Enqueue(task); err != nil {
-		return fmt.Errorf("failed to enqueue task: %v", err)
+	client := api_client.NewAPIClient(config)
+	if err := client.CheckAlarm(alarmID); err != nil {
+		return fmt.Errorf("failed to check alarm: %v", err)
 	}
 
 	log.Printf("Task enqueued")
@@ -40,5 +36,5 @@ func (c *CheckAlarmCommand) Run(args []string) error {
 
 func init() {
 	c := &CheckAlarmCommand{}
-	Register(c.Name(), c)
+	cli.RegisterCommand(c.Name(), c)
 }
