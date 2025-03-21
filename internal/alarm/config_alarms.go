@@ -25,32 +25,7 @@ func InitAlarms(alarmRepository AlarmRepository) error {
 	return nil
 }
 
-func getFileBasedAlarms() ([]*Alarm, error) {
-	if _, err := os.Stat("config/alarms"); os.IsNotExist(err) {
-		return nil, nil
-	}
-	alarms := make([]*Alarm, 0)
-	err := filepath.Walk("config/alarms", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("failed to walk alarms: %w", err)
-		}
-		if !info.IsDir() && strings.HasSuffix(path, ".yml") {
-			config, err := loadAlarmConfig(path)
-			if err != nil {
-				return fmt.Errorf("failed to load config from %s: %w", path, err)
-			}
-			log.Printf("loaded alarm id %s from path %s", config.ID, path)
-			alarms = append(alarms, config)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to walk alarms: %w", err)
-	}
-	return alarms, nil
-}
-
-func loadAlarmConfig(path string) (*Alarm, error) {
+func LoadAlarmConfig(path string) (*Alarm, error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read yml file: %w", err)
@@ -73,6 +48,33 @@ func loadAlarmConfig(path string) (*Alarm, error) {
 		}
 		alarm.Cron = fmt.Sprintf("@every %s", interval)
 	}
-	alarm.Path = strings.Split(path, "/")[2 : len(strings.Split(path, "/"))-1]
+	if len(alarm.Path) == 0 {
+		alarm.Path = strings.Split(path, "/")[2 : len(strings.Split(path, "/"))-1]
+	}
 	return alarm, nil
+}
+
+func getFileBasedAlarms() ([]*Alarm, error) {
+	if _, err := os.Stat("config/alarms"); os.IsNotExist(err) {
+		return nil, nil
+	}
+	alarms := make([]*Alarm, 0)
+	err := filepath.Walk("config/alarms", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("failed to walk alarms: %w", err)
+		}
+		if !info.IsDir() && strings.HasSuffix(path, ".yml") {
+			config, err := LoadAlarmConfig(path)
+			if err != nil {
+				return fmt.Errorf("failed to load config from %s: %w", path, err)
+			}
+			log.Printf("loaded alarm id %s from path %s", config.ID, path)
+			alarms = append(alarms, config)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to walk alarms: %w", err)
+	}
+	return alarms, nil
 }
