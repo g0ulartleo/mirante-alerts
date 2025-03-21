@@ -8,7 +8,7 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/web/dashboard"
-	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
+	"github.com/g0ulartleo/mirante-alerts/internal/worker/tasks"
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
 )
@@ -96,7 +96,7 @@ func RegisterRoutes(e *echo.Echo, signalService *signal.Service, alarmService *a
 
 	api.POST("/alarm/:alarm_id/check", func(c echo.Context) error {
 		alarmID := c.Param("alarm_id")
-		task, err := alarmTasks.NewCheckAlarmTask(alarmID)
+		task, err := tasks.NewAlarmCheckTask(alarmID)
 		if err != nil {
 			log.Printf("Error creating check alarm task: %v", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

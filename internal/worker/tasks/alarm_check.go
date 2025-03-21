@@ -1,4 +1,4 @@
-package alarm
+package tasks
 
 import (
 	"context"
@@ -13,23 +13,23 @@ import (
 )
 
 const (
-	TypeCheckAlarm = "alarm:check"
+	TypeAlarmCheck = "alarm:check"
 )
 
-type CheckAlarmPayload struct {
+type AlarmCheckPayload struct {
 	AlarmID string
 }
 
-func NewCheckAlarmTask(alarmID string) (*asynq.Task, error) {
-	payload, err := json.Marshal(CheckAlarmPayload{AlarmID: alarmID})
+func NewAlarmCheckTask(alarmID string) (*asynq.Task, error) {
+	payload, err := json.Marshal(AlarmCheckPayload{AlarmID: alarmID})
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal failed: %v", err)
 	}
-	return asynq.NewTask(TypeCheckAlarm, payload, asynq.MaxRetry(1)), nil
+	return asynq.NewTask(TypeAlarmCheck, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleCheckAlarmTask(ctx context.Context, t *asynq.Task, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) error {
-	var payload CheckAlarmPayload
+func HandleAlarmCheckTask(ctx context.Context, t *asynq.Task, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) error {
+	var payload AlarmCheckPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
@@ -62,7 +62,7 @@ func HandleCheckAlarmTask(ctx context.Context, t *asynq.Task, signalService *sig
 		if sig.Status == signal.StatusUnknown && !alarmConfig.Notifications.NotifyMissingSignals {
 			return nil
 		}
-		task, err := NewNotifyTask(payload.AlarmID, sig)
+		task, err := NewAlarmNotifyTask(payload.AlarmID, sig)
 		if err != nil {
 			return fmt.Errorf("failed to create notify task: %w", err)
 		}

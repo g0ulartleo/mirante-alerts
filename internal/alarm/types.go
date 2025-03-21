@@ -3,15 +3,15 @@ package alarm
 import "github.com/g0ulartleo/mirante-alerts/internal/signal"
 
 type Alarm struct {
-	ID            string                 `yaml:"id"`
-	Name          string                 `yaml:"name"`
-	Description   string                 `yaml:"description"`
-	Path          []string               `yaml:"-"`
-	Type          string                 `yaml:"type"`
-	Config        map[string]any         `yaml:"config"`
-	Cron          string                 `yaml:"cron"`
-	Interval      string                 `yaml:"interval"`
-	Notifications AlarmNotifications     `yaml:"notifications"`
+	ID            string             `yaml:"id"`
+	Name          string             `yaml:"name"`
+	Description   string             `yaml:"description"`
+	Path          []string           `yaml:"-"`
+	Type          string             `yaml:"type"`
+	Config        map[string]any     `yaml:"config"`
+	Cron          string             `yaml:"cron"`
+	Interval      string             `yaml:"interval"`
+	Notifications AlarmNotifications `yaml:"notifications"`
 }
 
 func HasNotificationsEnabled(alarm *Alarm) bool {

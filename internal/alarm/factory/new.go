@@ -1,9 +1,9 @@
-package stores
+package factory
 
 import (
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 )
 
-func NewAlarmStore() (alarm.AlarmRepository, error) {
+func New() (alarm.AlarmRepository, error) {
 	return NewRedisAlarmRepository()
 }

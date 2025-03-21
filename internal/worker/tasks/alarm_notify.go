@@ -1,4 +1,4 @@
-package alarm
+package tasks
 
 import (
 	"context"
@@ -12,24 +12,24 @@ import (
 )
 
 const (
-	TypeNotify = "alarm:notify"
+	TypeAlarmNotify = "alarm:notify"
 )
 
-type NotifyPayload struct {
+type AlarmNotifyPayload struct {
 	AlarmID string
 	Signal  signal.Signal
 }
 
-func NewNotifyTask(alarmID string, sig signal.Signal) (*asynq.Task, error) {
-	payload, err := json.Marshal(NotifyPayload{AlarmID: alarmID, Signal: sig})
+func NewAlarmNotifyTask(alarmID string, sig signal.Signal) (*asynq.Task, error) {
+	payload, err := json.Marshal(AlarmNotifyPayload{AlarmID: alarmID, Signal: sig})
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal failed: %w", err)
 	}
-	return asynq.NewTask(TypeNotify, payload, asynq.MaxRetry(1)), nil
+	return asynq.NewTask(TypeAlarmNotify, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleNotifyTask(ctx context.Context, t *asynq.Task, alarmService *alarm.AlarmService) error {
-	var payload NotifyPayload
+func HandleAlarmNotifyTask(ctx context.Context, t *asynq.Task, alarmService *alarm.AlarmService) error {
+	var payload AlarmNotifyPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %w", err)
 	}

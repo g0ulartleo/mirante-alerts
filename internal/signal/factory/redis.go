@@ -1,4 +1,4 @@
-package stores
+package factory
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package stores
+package factory
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
-func NewStore(cfg *config.AppConfig) (signal.SignalRepository, error) {
+func New(cfg *config.AppConfig) (signal.SignalRepository, error) {
 	switch cfg.Driver {
 	case "sqlite":
 		return NewSQLiteSignalRepository()

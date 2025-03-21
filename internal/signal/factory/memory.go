@@ -1,4 +1,4 @@
-package stores
+package factory
 
 import (
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"

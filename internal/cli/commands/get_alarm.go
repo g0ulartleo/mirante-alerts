@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/cli"
-	"github.com/g0ulartleo/mirante-alerts/internal/cli/api_client"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 )
 
@@ -26,7 +25,7 @@ func (c *GetAlarmCommand) Run(args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
-	apiClient := api_client.NewAPIClient(cliConfig)
+	apiClient := NewAPIClient(cliConfig)
 	alarm, err := apiClient.GetAlarm(alarmID)
 	if err != nil {
 		return fmt.Errorf("failed to get alarm: %w", err)

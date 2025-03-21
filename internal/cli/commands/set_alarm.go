@@ -6,7 +6,6 @@ import (
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	"github.com/g0ulartleo/mirante-alerts/internal/cli"
-	"github.com/g0ulartleo/mirante-alerts/internal/cli/api_client"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 )
 
@@ -38,7 +37,7 @@ func (c *SetAlarmCommand) Run(args []string) error {
 		return fmt.Errorf("invalid file type: %s", filePath)
 	}
 
-	apiClient := api_client.NewAPIClient(cliConfig)
+	apiClient := NewAPIClient(cliConfig)
 	err = apiClient.SetAlarm(a)
 	if err != nil {
 		return fmt.Errorf("failed to create or update alarm: %w", err)

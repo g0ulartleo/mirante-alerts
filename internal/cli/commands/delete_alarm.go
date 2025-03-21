@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/cli"
-	"github.com/g0ulartleo/mirante-alerts/internal/cli/api_client"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 )
 
@@ -24,7 +23,7 @@ func (c *DeleteAlarmCommand) Run(args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load CLI config: %v", err)
 	}
-	client := api_client.NewAPIClient(config)
+	client := NewAPIClient(config)
 	if err := client.DeleteAlarm(alarmID); err != nil {
 		return fmt.Errorf("failed to delete alarm: %v", err)
 	}

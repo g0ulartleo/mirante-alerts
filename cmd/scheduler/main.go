@@ -6,10 +6,9 @@ import (
 	"time"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
-	alarmStores "github.com/g0ulartleo/mirante-alerts/internal/alarm/stores"
+	alarmfactory "github.com/g0ulartleo/mirante-alerts/internal/alarm/factory"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-	alarmTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/alarm"
-	backofficeTasks "github.com/g0ulartleo/mirante-alerts/internal/worker/tasks/backoffice"
+	"github.com/g0ulartleo/mirante-alerts/internal/worker/tasks"
 	"github.com/hibiken/asynq"
 )
 
@@ -25,7 +24,7 @@ func (p *AlarmConfigProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) 
 
 	var configs []*asynq.PeriodicTaskConfig
 	for _, alarmConfig := range alarms {
-		task, err := alarmTasks.NewCheckAlarmTask(alarmConfig.ID)
+		task, err := tasks.NewAlarmCheckTask(alarmConfig.ID)
 		if err != nil {
 			return nil, fmt.Errorf("error creating alarm check task: %v", err)
 		}
@@ -39,7 +38,7 @@ func (p *AlarmConfigProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) 
 		})
 	}
 
-	cleanSignalsTask, err := backofficeTasks.NewCleanSignalsTask()
+	cleanSignalsTask, err := tasks.NewBackofficeCleanSignalsTask()
 	if err != nil {
 		return nil, fmt.Errorf("error creating clean signals task: %v", err)
 	}
@@ -52,7 +51,7 @@ func (p *AlarmConfigProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) 
 }
 
 func main() {
-	alarmStore, err := alarmStores.NewAlarmStore()
+	alarmStore, err := alarmfactory.New()
 	if err != nil {
 		log.Fatalf("Error initializing alarm store: %v", err)
 	}
