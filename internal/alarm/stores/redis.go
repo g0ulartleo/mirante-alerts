@@ -65,12 +65,18 @@ func (r *RedisAlarmRepository) SetAlarm(a *alarm.Alarm) error {
 	if err != nil {
 		return err
 	}
-	return r.redis.Set(context.Background(), key, alarmJSON, 0).Err()
+	if err := r.redis.Set(context.Background(), key, alarmJSON, 0).Err(); err != nil {
+		return err
+	}
+	return r.redis.Save(context.Background()).Err()
 }
 
 func (r *RedisAlarmRepository) DeleteAlarm(alarmID string) error {
 	key := fmt.Sprintf("alarm:%s", alarmID)
-	return r.redis.Del(context.Background(), key).Err()
+	if err := r.redis.Del(context.Background(), key).Err(); err != nil {
+		return err
+	}
+	return r.redis.Save(context.Background()).Err()
 }
 
 func (r *RedisAlarmRepository) Close() error {

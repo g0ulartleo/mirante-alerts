@@ -19,3 +19,11 @@ func (s *AlarmService) GetAlarm(id string) (*Alarm, error) {
 func (s *AlarmService) GetAlarms() ([]*Alarm, error) {
 	return s.alarmRepository.GetAlarms()
 }
+
+func (s *AlarmService) SetAlarm(alarm *Alarm) error {
+	return s.alarmRepository.SetAlarm(alarm)
+}
+
+func (s *AlarmService) DeleteAlarm(id string) error {
+	return s.alarmRepository.DeleteAlarm(id)
+}
