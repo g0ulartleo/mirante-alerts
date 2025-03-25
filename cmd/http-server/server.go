@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	alarmrepo "github.com/g0ulartleo/mirante-alerts/internal/alarm/repo"
@@ -41,6 +42,10 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Static("/static", "static")
+
+	e.GET("/ping", func(c echo.Context) error {
+		return c.String(http.StatusOK, "pong")
+	})
 
 	apiGroup := e.Group("/api")
 	api.RegisterRoutes(apiGroup, signalService, alarmService, asyncClient)
