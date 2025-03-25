@@ -17,13 +17,12 @@ type SlackNotification struct {
 
 func (s *SlackNotification) Build(alarmConfig *alarm.Alarm, sig signal.Signal) error {
 	s.WebhookURL = alarmConfig.Notifications.Slack.WebhookURL
-	message := fmt.Sprintf("*Alert:* %s\n*Signal:* %v", alarmConfig.Name, sig)
-	s.Message = message
+	s.Message = fmt.Sprintf("*Alert:* %s (*%s*)\n*Signal:* %v", alarmConfig.Name, sig.Status, sig)
 	return nil
 }
 
 func (s *SlackNotification) Send() error {
-	payload := map[string]interface{}{
+	payload := map[string]string{
 		"text": s.Message,
 	}
 

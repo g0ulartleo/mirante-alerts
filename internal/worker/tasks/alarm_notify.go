@@ -37,7 +37,7 @@ func HandleAlarmNotifyTask(ctx context.Context, t *asynq.Task, alarmService *ala
 	if err != nil {
 		return fmt.Errorf("failed to get alarm config: %w", err)
 	}
-	errors := notification.DispatchAlarmNotifications(alarmConfig, payload.Signal)
+	errors := notification.Dispatch(alarmConfig, payload.Signal)
 	if len(errors) > 0 {
 		for _, err := range errors {
 			fmt.Println("error dispatching alarm notification: %w", err)

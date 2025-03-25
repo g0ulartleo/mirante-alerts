@@ -5,7 +5,7 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
-func DispatchAlarmNotifications(alarmConfig *alarm.Alarm, sig signal.Signal) []error {
+func Dispatch(alarmConfig *alarm.Alarm, sig signal.Signal) []error {
 	notifications := []Notification{}
 	if len(alarmConfig.Notifications.Email.To) > 0 {
 		notifications = append(notifications, NewEmailNotification())
@@ -15,7 +15,6 @@ func DispatchAlarmNotifications(alarmConfig *alarm.Alarm, sig signal.Signal) []e
 	}
 
 	channel := make(chan error)
-
 	for _, notification := range notifications {
 		go func(notification Notification) {
 			err := notification.Build(alarmConfig, sig)
