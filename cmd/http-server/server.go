@@ -42,8 +42,21 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Static("/static", "static")
 
-	api.RegisterRoutes(e, signalService, alarmService, asyncClient)
-	dashboard.RegisterRoutes(e, signalService, alarmService)
+	apiGroup := e.Group("/api")
+	api.RegisterRoutes(apiGroup, signalService, alarmService, asyncClient)
+
+	dashboardGroup := e.Group("")
+	dashboardGroup.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		if config.Env().BasicAuthUsername == "" || config.Env().BasicAuthPassword == "" {
+			return true, nil
+		}
+		if username == config.Env().BasicAuthUsername &&
+			password == config.Env().BasicAuthPassword {
+			return true, nil
+		}
+		return false, nil
+	}))
+	dashboard.RegisterRoutes(dashboardGroup, signalService, alarmService)
 
 	e.Logger.Fatal(e.Start(config.Env().HTTPAddr + ":" + config.Env().HTTPPort))
 }

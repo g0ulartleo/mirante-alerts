@@ -12,9 +12,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(e *echo.Echo, signalService *signal.Service, alarmService *alarm.AlarmService) {
-
-	e.GET("/", func(c echo.Context) error {
+func RegisterRoutes(dashboard *echo.Group, signalService *signal.Service, alarmService *alarm.AlarmService) {
+	dashboard.GET("/", func(c echo.Context) error {
 		alarmSignals, err := GetAlarmSignals(signalService, alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
@@ -23,7 +22,7 @@ func RegisterRoutes(e *echo.Echo, signalService *signal.Service, alarmService *a
 		return Render(c, http.StatusOK, templates.Alarms(alarmSignals))
 	})
 
-	e.GET("/*", func(c echo.Context) error {
+	dashboard.GET("/*", func(c echo.Context) error {
 		pathParam := c.Param("*")
 		var level int
 		var baseURL string

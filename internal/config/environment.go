@@ -6,19 +6,21 @@ import (
 )
 
 type Environment struct {
-	DBDriver        string
-	MySQLDBPort     string
-	MySQLDBHost     string
-	MySQLDBUser     string
-	MySQLDBPassword string
-	RedisAddr       string
-	HTTPPort        string
-	HTTPAddr        string
-	SMTPHost        string
-	SMTPPort        string
-	SMTPUser        string
-	SMTPPassword    string
-	APIKey          string
+	DBDriver          string
+	MySQLDBPort       string
+	MySQLDBHost       string
+	MySQLDBUser       string
+	MySQLDBPassword   string
+	RedisAddr         string
+	HTTPPort          string
+	HTTPAddr          string
+	SMTPHost          string
+	SMTPPort          string
+	SMTPUser          string
+	SMTPPassword      string
+	APIKey            string
+	BasicAuthUsername string
+	BasicAuthPassword string
 }
 
 var (
@@ -41,19 +43,21 @@ func getEnvOrDefault(key, defaultValue string) string {
 func Env() *Environment {
 	once.Do(func() {
 		env = &Environment{
-			DBDriver:        os.Getenv("DB_DRIVER"),
-			MySQLDBHost:     os.Getenv("MYSQL_DB_HOST"),
-			MySQLDBPort:     os.Getenv("MYSQL_DB_PORT"),
-			MySQLDBUser:     os.Getenv("MYSQL_DB_USER"),
-			MySQLDBPassword: os.Getenv("MYSQL_DB_PASSWORD"),
-			RedisAddr:       getEnvOrDefault("REDIS_ADDR", "127.0.0.1:6379"),
-			HTTPPort:        getEnvOrDefault("HTTP_PORT", "40169"),
-			HTTPAddr:        getEnvOrDefault("HTTP_ADDR", "127.0.0.1"),
-			SMTPHost:        os.Getenv("SMTP_HOST"),
-			SMTPPort:        os.Getenv("SMTP_PORT"),
-			SMTPUser:        os.Getenv("SMTP_USER"),
-			SMTPPassword:    os.Getenv("SMTP_PASSWORD"),
-			APIKey:          os.Getenv("API_KEY"),
+			DBDriver:          os.Getenv("DB_DRIVER"),
+			MySQLDBHost:       os.Getenv("MYSQL_DB_HOST"),
+			MySQLDBPort:       os.Getenv("MYSQL_DB_PORT"),
+			MySQLDBUser:       os.Getenv("MYSQL_DB_USER"),
+			MySQLDBPassword:   os.Getenv("MYSQL_DB_PASSWORD"),
+			RedisAddr:         getEnvOrDefault("REDIS_ADDR", "127.0.0.1:6379"),
+			HTTPPort:          getEnvOrDefault("HTTP_PORT", "40169"),
+			HTTPAddr:          getEnvOrDefault("HTTP_ADDR", "127.0.0.1"),
+			SMTPHost:          os.Getenv("SMTP_HOST"),
+			SMTPPort:          os.Getenv("SMTP_PORT"),
+			SMTPUser:          os.Getenv("SMTP_USER"),
+			SMTPPassword:      os.Getenv("SMTP_PASSWORD"),
+			APIKey:            os.Getenv("API_KEY"),
+			BasicAuthUsername: os.Getenv("DASHBOARD_BASIC_AUTH_USERNAME"),
+			BasicAuthPassword: os.Getenv("DASHBOARD_BASIC_AUTH_PASSWORD"),
 		}
 	})
 

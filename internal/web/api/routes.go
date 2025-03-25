@@ -25,13 +25,12 @@ func APIKeyAuthMiddleware() echo.MiddlewareFunc {
 	}
 }
 
-func RegisterRoutes(e *echo.Echo, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) {
+func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) {
 	if config.Env().APIKey == "" {
 		log.Println("API_KEY is not set")
 		return
 	}
 
-	api := e.Group("/api")
 	api.Use(APIKeyAuthMiddleware())
 
 	api.GET("/alarm/signals", func(c echo.Context) error {
