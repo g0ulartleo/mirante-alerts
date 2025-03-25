@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
-	alarmfactory "github.com/g0ulartleo/mirante-alerts/internal/alarm/factory"
+	alarmrepo "github.com/g0ulartleo/mirante-alerts/internal/alarm/repo"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/worker/tasks"
 	"github.com/hibiken/asynq"
@@ -51,14 +51,14 @@ func (p *AlarmConfigProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) 
 }
 
 func main() {
-	alarmStore, err := alarmfactory.New()
+	alarmRepo, err := alarmrepo.New()
 	if err != nil {
 		log.Fatalf("Error initializing alarm store: %v", err)
 	}
-	defer alarmStore.Close()
+	defer alarmRepo.Close()
 
-	alarmService := alarm.NewAlarmService(alarmStore)
-	err = alarm.InitAlarms(alarmStore)
+	alarmService := alarm.NewAlarmService(alarmRepo)
+	err = alarm.InitAlarms(alarmRepo)
 	if err != nil {
 		log.Fatalf("Error initializing sentinel configs: %v", err)
 	}

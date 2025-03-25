@@ -28,7 +28,14 @@ func NewAlarmCheckTask(alarmID string) (*asynq.Task, error) {
 	return asynq.NewTask(TypeAlarmCheck, payload, asynq.MaxRetry(1)), nil
 }
 
-func HandleAlarmCheckTask(ctx context.Context, t *asynq.Task, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) error {
+func HandleAlarmCheckTask(
+	ctx context.Context,
+	t *asynq.Task,
+	sentinelFactory *sentinel.SentinelFactory,
+	signalService *signal.Service,
+	alarmService *alarm.AlarmService,
+	asyncClient *asynq.Client,
+) error {
 	var payload AlarmCheckPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
@@ -37,7 +44,7 @@ func HandleAlarmCheckTask(ctx context.Context, t *asynq.Task, signalService *sig
 	if err != nil {
 		return fmt.Errorf("failed to load alarm config: %v: %w", err, asynq.SkipRetry)
 	}
-	sentinel, err := initializeSentinel(alarmConfig)
+	sentinel, err := initializeSentinel(alarmConfig, sentinelFactory)
 	if err != nil {
 		return fmt.Errorf("failed to initialize sentinel: %w", err)
 	}
@@ -73,8 +80,8 @@ func HandleAlarmCheckTask(ctx context.Context, t *asynq.Task, signalService *sig
 	return nil
 }
 
-func initializeSentinel(alarmConfig *alarm.Alarm) (sentinel.Sentinel, error) {
-	sentinel, err := sentinel.Factory.GetSentinel(alarmConfig.Type)
+func initializeSentinel(alarmConfig *alarm.Alarm, sentinelFactory *sentinel.SentinelFactory) (sentinel.Sentinel, error) {
+	sentinel, err := sentinelFactory.Create(alarmConfig.Type)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sentinel from factory: %v: %w", err, asynq.SkipRetry)
 	}

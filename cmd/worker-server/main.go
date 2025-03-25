@@ -5,36 +5,37 @@ import (
 	"log"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
-	alarmfactory "github.com/g0ulartleo/mirante-alerts/internal/alarm/factory"
+	alarmrepo "github.com/g0ulartleo/mirante-alerts/internal/alarm/repo"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/sentinel"
-	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/builtin"
+	"github.com/g0ulartleo/mirante-alerts/internal/sentinel/builtins"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	signalfactory "github.com/g0ulartleo/mirante-alerts/internal/signal/factory"
+	signalrepo "github.com/g0ulartleo/mirante-alerts/internal/signal/repo"
 	"github.com/g0ulartleo/mirante-alerts/internal/worker"
 	"github.com/hibiken/asynq"
 )
 
 func main() {
-	alarmStore, err := alarmfactory.New()
+	alarmRepo, err := alarmrepo.New()
 	if err != nil {
 		log.Fatalf("Error initializing alarm store: %v", err)
 	}
-	defer alarmStore.Close()
-	alarmService := alarm.NewAlarmService(alarmStore)
-	err = alarm.InitAlarms(alarmStore)
+	defer alarmRepo.Close()
+	alarmService := alarm.NewAlarmService(alarmRepo)
+	err = alarm.InitAlarms(alarmRepo)
 	if err != nil {
 		log.Fatalf("Error initializing alarm configs: %v", err)
 	}
 
-	builtin.Register(sentinel.Factory)
+	sentinelFactory := sentinel.NewFactory()
+	builtins.Register(sentinelFactory)
 
-	signalStore, err := signalfactory.New(config.LoadAppConfigFromEnv())
+	signalRepo, err := signalrepo.New(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("Error initializing signal store: %v", err)
 	}
-	defer signalStore.Close()
-	signalService := signal.NewService(signalStore)
+	defer signalRepo.Close()
+	signalService := signal.NewService(signalRepo)
 
 	asyncClient := asynq.NewClient(asynq.RedisClientOpt{Addr: config.Env().RedisAddr})
 	defer asyncClient.Close()
@@ -55,7 +56,7 @@ func main() {
 	)
 
 	mux := asynq.NewServeMux()
-	worker.RegisterTasks(mux, signalService, alarmService, asyncClient)
+	worker.RegisterTasks(mux, sentinelFactory, signalService, alarmService, asyncClient)
 
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)

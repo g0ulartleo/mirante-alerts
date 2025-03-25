@@ -1,4 +1,4 @@
-package factory
+package repo
 
 import (
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"

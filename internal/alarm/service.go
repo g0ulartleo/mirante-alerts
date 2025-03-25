@@ -1,29 +1,29 @@
 package alarm
 
 type AlarmService struct {
-	alarmRepository AlarmRepository
+	repo AlarmRepository
 }
 
-func NewAlarmService(alarmRepository AlarmRepository) *AlarmService {
-	return &AlarmService{alarmRepository: alarmRepository}
+func NewAlarmService(repo AlarmRepository) *AlarmService {
+	return &AlarmService{repo: repo}
 }
 
 func (s *AlarmService) InitAlarms() error {
-	return InitAlarms(s.alarmRepository)
+	return InitAlarms(s.repo)
 }
 
 func (s *AlarmService) GetAlarm(id string) (*Alarm, error) {
-	return s.alarmRepository.GetAlarm(id)
+	return s.repo.GetAlarm(id)
 }
 
 func (s *AlarmService) GetAlarms() ([]*Alarm, error) {
-	return s.alarmRepository.GetAlarms()
+	return s.repo.GetAlarms()
 }
 
 func (s *AlarmService) SetAlarm(alarm *Alarm) error {
-	return s.alarmRepository.SetAlarm(alarm)
+	return s.repo.SetAlarm(alarm)
 }
 
 func (s *AlarmService) DeleteAlarm(id string) error {
-	return s.alarmRepository.DeleteAlarm(id)
+	return s.repo.DeleteAlarm(id)
 }

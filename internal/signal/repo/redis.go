@@ -1,4 +1,4 @@
-package factory
+package repo
 
 import (
 	"context"

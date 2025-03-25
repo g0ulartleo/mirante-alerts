@@ -1,4 +1,4 @@
-package builtin
+package builtins
 
 import "github.com/g0ulartleo/mirante-alerts/internal/sentinel"
 

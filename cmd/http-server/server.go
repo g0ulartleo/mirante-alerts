@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
-	alarmfactory "github.com/g0ulartleo/mirante-alerts/internal/alarm/factory"
+	alarmrepo "github.com/g0ulartleo/mirante-alerts/internal/alarm/repo"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
-	signalfactory "github.com/g0ulartleo/mirante-alerts/internal/signal/factory"
+	signalrepo "github.com/g0ulartleo/mirante-alerts/internal/signal/repo"
 	"github.com/g0ulartleo/mirante-alerts/internal/web/api"
 	"github.com/g0ulartleo/mirante-alerts/internal/web/dashboard"
 	"github.com/hibiken/asynq"
@@ -16,22 +16,22 @@ import (
 )
 
 func main() {
-	alarmStore, err := alarmfactory.New()
+	alarmRepo, err := alarmrepo.New()
 	if err != nil {
 		log.Fatalf("Error initializing alarm store: %v", err)
 	}
-	defer alarmStore.Close()
-	alarmService := alarm.NewAlarmService(alarmStore)
-	err = alarm.InitAlarms(alarmStore)
+	defer alarmRepo.Close()
+	alarmService := alarm.NewAlarmService(alarmRepo)
+	err = alarm.InitAlarms(alarmRepo)
 	if err != nil {
 		log.Fatalf("Error initializing alarm configs: %v", err)
 	}
-	signalStore, err := signalfactory.New(config.LoadAppConfigFromEnv())
+	signalRepo, err := signalrepo.New(config.LoadAppConfigFromEnv())
 	if err != nil {
 		log.Fatalf("Error initializing signal store: %v", err)
 	}
-	defer signalStore.Close()
-	signalService := signal.NewService(signalStore)
+	defer signalRepo.Close()
+	signalService := signal.NewService(signalRepo)
 	asyncClient := asynq.NewClient(asynq.RedisClientOpt{
 		Addr: config.Env().RedisAddr,
 	})
