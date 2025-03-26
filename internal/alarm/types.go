@@ -6,7 +6,7 @@ type Alarm struct {
 	ID            string             `yaml:"id"`
 	Name          string             `yaml:"name"`
 	Description   string             `yaml:"description"`
-	Path          []string           `yaml:"-"`
+	Path          []string           `yaml:"path"`
 	Type          string             `yaml:"type"`
 	Config        map[string]any     `yaml:"config"`
 	Cron          string             `yaml:"cron"`

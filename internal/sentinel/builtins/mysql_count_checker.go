@@ -10,34 +10,30 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
-type MySQLQueryCheckerSentinel struct {
+type MySQLCountCheckerSentinel struct {
 	query      string
-	expected   string
+	expected   int64
 	connection *connections.MySQLConnection
 }
 
-func NewMySQLQueryCheckerSentinel() sentinel.Sentinel {
-	return &MySQLQueryCheckerSentinel{}
+func NewMySQLCountCheckerSentinel() sentinel.Sentinel {
+	return &MySQLCountCheckerSentinel{}
 }
 
-func (s *MySQLQueryCheckerSentinel) Configure(config map[string]any) error {
+func (s *MySQLCountCheckerSentinel) Configure(config map[string]any) error {
 	for _, field := range []string{"connection", "query", "expected"} {
 		if _, ok := config[field]; !ok {
 			return fmt.Errorf("missing required field: %s", field)
 		}
 	}
 	s.query = config["query"].(string)
-	if _, ok := config["expected"].(string); ok {
-		s.expected = config["expected"].(string)
-	} else if _, ok := config["expected"].(int); ok {
-		s.expected = fmt.Sprintf("%d", config["expected"].(int))
-	} else if _, ok := config["expected"].(float64); ok {
-		s.expected = fmt.Sprintf("%f", config["expected"].(float64))
-	} else {
-		return fmt.Errorf("'expected' must be a string, int or float")
-	}
-	if s.expected == "" {
-		return fmt.Errorf("'expected' cannot be empty")
+	switch v := config["expected"].(type) {
+	case int:
+		s.expected = int64(v)
+	case float64:
+		s.expected = int64(v)
+	default:
+		return fmt.Errorf("cant convert `expected` to int64: %v", v)
 	}
 	connConfig, ok := config["connection"].(map[string]any)
 	if !ok {
@@ -54,7 +50,7 @@ func (s *MySQLQueryCheckerSentinel) Configure(config map[string]any) error {
 	return nil
 }
 
-func (s *MySQLQueryCheckerSentinel) Check(ctx context.Context, alarmID string) (signal.Signal, error) {
+func (s *MySQLCountCheckerSentinel) Check(ctx context.Context, alarmID string) (signal.Signal, error) {
 	defer s.connection.Close()
 	rows, err := s.connection.DB.Query(s.query)
 	if err != nil {
@@ -67,7 +63,7 @@ func (s *MySQLQueryCheckerSentinel) Check(ctx context.Context, alarmID string) (
 	}
 	defer rows.Close()
 
-	var response any
+	var response int64
 	if rows.Next() {
 		if err = rows.Scan(&response); err != nil {
 			return signal.Signal{
@@ -80,13 +76,13 @@ func (s *MySQLQueryCheckerSentinel) Check(ctx context.Context, alarmID string) (
 	} else {
 		return signal.Signal{
 			AlarmID:   alarmID,
-			Status:    signal.StatusUnhealthy,
+			Status:    signal.StatusUnknown,
 			Timestamp: time.Now(),
 			Message:   "query returned no rows",
 		}, nil
 	}
-	match := s.expected == fmt.Sprintf("%v", response)
-	if match {
+
+	if response == s.expected {
 		return signal.Signal{
 			AlarmID:   alarmID,
 			Status:    signal.StatusHealthy,
@@ -94,6 +90,7 @@ func (s *MySQLQueryCheckerSentinel) Check(ctx context.Context, alarmID string) (
 			Message:   fmt.Sprintf("query returned %v", response),
 		}, nil
 	}
+
 	return signal.Signal{
 		AlarmID:   alarmID,
 		Status:    signal.StatusUnhealthy,
