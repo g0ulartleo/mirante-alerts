@@ -16,3 +16,24 @@ config:
   expected_body: "Hello, World!" # optional
 ```
 
+### MySQL Count Checker
+
+The MySQL Count Checker sentinel type executes a SQL query that returns a count and validates it against an expected value.
+
+#### Configuration
+
+```yaml
+id: users-count-check
+name: Users Count Check
+type: mysql-count-checker
+config:
+  connection:
+    host: localhost
+    port: 3306
+    user: root
+    password: secret
+    database: myapp
+  query: "SELECT COUNT(*) FROM users"
+  expected: 100
+```
+
