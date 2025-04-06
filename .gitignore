@@ -1,6 +1,7 @@
 .env
 cmd/http-server/tmp/
 .tmp/
+tmp/
 tailwindcss
 **/*_templ.go
 static/css/style.css

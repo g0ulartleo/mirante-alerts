@@ -2,8 +2,8 @@ root = "."
 tmp_dir = ".tmp"
 
 [build]
-cmd = "go build -tags=dev -o ./tmp/worker ./cmd/worker-server"
-bin = "tmp/worker"
+cmd = "go build -tags=dev -o ./.tmp/worker ./cmd/worker-server"
+bin = ".tmp/worker"
 include_ext = ["go", "templ"]
 exclude_dir = ["assets", "tmp", "vendor"]
 exclude_regex = ["_templ\\.go$"]

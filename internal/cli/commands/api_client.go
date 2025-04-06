@@ -10,6 +10,7 @@ import (
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
+	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 )
 
 type Client struct {
@@ -20,7 +21,7 @@ func NewAPIClient(config *config.CLIConfig) *Client {
 	return &Client{config: config}
 }
 
-func (c *Client) doRequest(method, endpoint string, body interface{}) ([]byte, error) {
+func (c *Client) doRequest(method, endpoint string, body any) ([]byte, error) {
 	var reqBody io.Reader
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -97,14 +98,14 @@ func (c *Client) SetAlarm(a *alarm.Alarm) error {
 	return err
 }
 
-func (c *Client) GetAlarmSignals(id string) ([]interface{}, error) {
+func (c *Client) GetAlarmSignals(id string) ([]signal.Signal, error) {
 	endpoint := path.Join("/api/alarm", id, "signals")
 	data, err := c.doRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var signals []interface{}
+	var signals []signal.Signal
 	if err := json.Unmarshal(data, &signals); err != nil {
 		return nil, err
 	}

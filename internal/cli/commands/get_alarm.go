@@ -26,6 +26,7 @@ func (c *GetAlarmCommand) Run(args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 	apiClient := NewAPIClient(cliConfig)
+
 	alarm, err := apiClient.GetAlarm(alarmID)
 	if err != nil {
 		return fmt.Errorf("failed to get alarm: %w", err)
