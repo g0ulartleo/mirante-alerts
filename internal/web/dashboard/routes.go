@@ -9,18 +9,40 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/web/dashboard/templates"
+	"github.com/g0ulartleo/mirante-alerts/internal/web/dashboard/websocket"
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(dashboard *echo.Group, signalService *signal.Service, alarmService *alarm.AlarmService) {
+type Dashboard struct {
+	wsBroker      *websocket.WebSocketBroker
+	signalService *signal.Service
+	alarmService  *alarm.AlarmService
+}
+
+func NewDashboard(signalService *signal.Service, alarmService *alarm.AlarmService, redisAddr string) (*Dashboard, error) {
+	wsBroker, err := websocket.NewWebSocketBroker(redisAddr)
+	if err != nil {
+		return nil, err
+	}
+	go wsBroker.Run()
+	return &Dashboard{
+		wsBroker:      wsBroker,
+		signalService: signalService,
+		alarmService:  alarmService,
+	}, nil
+}
+
+func (d *Dashboard) RegisterRoutes(dashboard *echo.Group) {
 	dashboard.GET("/", func(c echo.Context) error {
-		alarmSignals, err := GetAlarmSignals(signalService, alarmService)
+		alarmSignals, err := GetAlarmSignals(d.signalService, d.alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)
 		}
 		return Render(c, http.StatusOK, templates.Alarms(alarmSignals))
 	})
+
+	dashboard.GET("/ws", websocket.HandleWebSocket(d.wsBroker))
 
 	dashboard.GET("/*", func(c echo.Context) error {
 		pathParam := c.Param("*")
@@ -34,7 +56,7 @@ func RegisterRoutes(dashboard *echo.Group, signalService *signal.Service, alarmS
 			level = len(segments)
 			baseURL = "/" + pathParam
 		}
-		alarmSignals, err := GetAlarmSignals(signalService, alarmService)
+		alarmSignals, err := GetAlarmSignals(d.signalService, d.alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
 			return RenderError(c, http.StatusInternalServerError, err)
@@ -44,10 +66,16 @@ func RegisterRoutes(dashboard *echo.Group, signalService *signal.Service, alarmS
 	})
 }
 
+func (d *Dashboard) Close() error {
+	return d.wsBroker.Close()
+}
+
 func Render(ctx echo.Context, statusCode int, template templ.Component) error {
 	buf := templ.GetBuffer()
 	defer templ.ReleaseBuffer(buf)
-	template = templates.Base(template)
+	if ctx.Path() != "/" {
+		template = templates.Base(template)
+	}
 	if err := template.Render(ctx.Request().Context(), buf); err != nil {
 		return RenderError(ctx, http.StatusInternalServerError, err)
 	}

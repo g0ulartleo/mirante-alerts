@@ -61,7 +61,14 @@ func main() {
 		}
 		return false, nil
 	}))
-	dashboard.RegisterRoutes(dashboardGroup, signalService, alarmService)
+
+	dashboardInstance, err := dashboard.NewDashboard(signalService, alarmService, config.Env().RedisAddr)
+	if err != nil {
+		log.Fatalf("Error initializing dashboard: %v", err)
+	}
+	defer dashboardInstance.Close()
+
+	dashboardInstance.RegisterRoutes(dashboardGroup)
 
 	e.Logger.Fatal(e.Start(config.Env().HTTPAddr + ":" + config.Env().HTTPPort))
 }

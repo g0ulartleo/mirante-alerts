@@ -58,14 +58,23 @@ func HandleAlarmCheckTask(
 	if err != nil {
 		return fmt.Errorf("failed to write signal: %w", err)
 	}
+	changed, err := signalService.AlarmHasChangedStatus(payload.AlarmID)
+	if err != nil {
+		return fmt.Errorf("failed to get alarm latest signals: %w", err)
+	}
+	if !changed {
+		return nil
+	}
+
+	dashboardTask, err := NewDashboardNotifyTask(payload.AlarmID, sig)
+	if err != nil {
+		return fmt.Errorf("failed to create dashboard notify task: %w", err)
+	}
+	if _, err := asyncClient.Enqueue(dashboardTask); err != nil {
+		return fmt.Errorf("failed to enqueue dashboard notify task: %w", err)
+	}
+
 	if alarm.HasNotificationsEnabled(alarmConfig) {
-		changed, err := signalService.AlarmHasChangedStatus(payload.AlarmID)
-		if err != nil {
-			return fmt.Errorf("failed to get alarm latest signals: %w", err)
-		}
-		if !changed {
-			return nil
-		}
 		if sig.Status == signal.StatusUnknown && !alarmConfig.Notifications.NotifyMissingSignals {
 			return nil
 		}

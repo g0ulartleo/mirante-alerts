@@ -13,6 +13,7 @@ import (
 	signalrepo "github.com/g0ulartleo/mirante-alerts/internal/signal/repo"
 	"github.com/g0ulartleo/mirante-alerts/internal/worker"
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -40,6 +41,11 @@ func main() {
 	asyncClient := asynq.NewClient(asynq.RedisClientOpt{Addr: config.Env().RedisAddr})
 	defer asyncClient.Close()
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: config.Env().RedisAddr,
+	})
+	defer redisClient.Close()
+
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: config.Env().RedisAddr},
 		asynq.Config{
@@ -56,9 +62,9 @@ func main() {
 	)
 
 	mux := asynq.NewServeMux()
-	worker.RegisterTasks(mux, sentinelFactory, signalService, alarmService, asyncClient)
+	worker.RegisterTasks(mux, sentinelFactory, signalService, alarmService, asyncClient, redisClient)
 
 	if err := srv.Run(mux); err != nil {
-		log.Fatalf("could not run server: %v", err)
+		log.Fatalf("Error running server: %v", err)
 	}
 }

@@ -2,41 +2,73 @@ package templates
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
 )
 
 templ Alarms(alarmsWithSignals []alarm.AlarmSignals) {
-	@Treemap(alarmsWithSignals, 0, "/")
+	@Base(WebSocketContainer(alarmsWithSignals))
+}
+
+templ WebSocketContainer(alarmsWithSignals []alarm.AlarmSignals) {
+		<div id="alarms-container">
+			@Treemap(alarmsWithSignals, 0, "/")
+		</div>
 }
 
 templ Treemap(alarmsWithSignals []alarm.AlarmSignals, level int, baseURL string) {
 	<div class="h-screen p-2">
-		<div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] auto-rows-fr gap-2 h-[calc(100vh-1rem)]">
-			{{ groups := make(map[string][]alarm.AlarmSignals) }}
-			{{ thisLevelConfigs := []alarm.AlarmSignals{} }}
+		{{ groups := make(map[string][]alarm.AlarmSignals) }}
+		{{ thisLevelConfigs := []alarm.AlarmSignals{} }}
 
-			for _, alarmWithSignal := range alarmsWithSignals {
-				if strings.Join(alarmWithSignal.Alarm.Path, "/") == strings.TrimLeft(baseURL, "/") {
-					{{ thisLevelConfigs = append(thisLevelConfigs, alarmWithSignal) }}
-				} else if len(alarmWithSignal.Alarm.Path) > level {
-					{{ groupKey := alarmWithSignal.Alarm.Path[level] }}
-					{{ groups[groupKey] = append(groups[groupKey], alarmWithSignal) }}
-				}
+		for _, alarmWithSignal := range alarmsWithSignals {
+			if strings.Join(alarmWithSignal.Alarm.Path, "/") == strings.TrimLeft(baseURL, "/") {
+				{{ thisLevelConfigs = append(thisLevelConfigs, alarmWithSignal) }}
+			} else if len(alarmWithSignal.Alarm.Path) > level {
+				{{ groupKey := alarmWithSignal.Alarm.Path[level] }}
+				{{ groups[groupKey] = append(groups[groupKey], alarmWithSignal) }}
 			}
+		}
 
+		{{ totalItems := len(thisLevelConfigs) + len(groups) }}
+		{{ cols := int(math.Sqrt(float64(totalItems))) }}
+		{{ if cols * cols < totalItems { cols += 1 } }}
+		{{ gridTemplateColumns := fmt.Sprintf("grid-cols-[repeat(%d,minmax(0,1fr))]", cols) }}
+
+		{{ lastRowItems := totalItems % cols }}
+		{{ spanNeeded := 1 }}
+		{{ if lastRowItems > 0 && lastRowItems < cols {
+			spanNeeded = cols - lastRowItems + 1
+		} }}
+
+		<div class={ "grid gap-2 h-[calc(100vh-1rem)] " + gridTemplateColumns }>
+			{{ itemsRendered := 0 }}
 			for groupKey, groupConfigs := range groups {
-				{{ statusClass := getGroupStatus(groupConfigs) }}
-				{{ groupURL := getGroupURL(baseURL, groupKey) }}
-				<a href={groupURL} class={ "w-full h-full flex items-center justify-center rounded-sm text-center p-2 " + statusClass }>
+				{{ itemClass := "w-full h-full flex items-center justify-center rounded-sm text-center p-2 " + getGroupStatus(groupConfigs) }}
+				{{ itemsRendered++ }}
+				{{ isLastItem := itemsRendered == totalItems }}
+
+				{{ if isLastItem && lastRowItems > 0 && lastRowItems < cols {
+					itemClass += fmt.Sprintf(" col-span-%d", spanNeeded)
+				} }}
+
+				<a href={getGroupURL(baseURL, groupKey)} class={ itemClass }>
 					<span class="text-xl text-white font-semibold">{ groupKey }</span>
 				</a>
 			}
 
 			for _, alarmWithSignal := range thisLevelConfigs {
-				{{ alarmStatusColor := getAlarmStatusColor(alarmWithSignal) }}
-				<div class={ "w-full h-full flex items-center justify-center rounded-sm text-center p-2 " + alarmStatusColor }>
+				{{ itemClass := "w-full h-full flex items-center justify-center rounded-sm text-center p-2 " + getAlarmStatusColor(alarmWithSignal) }}
+				{{ itemsRendered++ }}
+				{{ isLastItem := itemsRendered == totalItems }}
+
+				{{ if isLastItem && lastRowItems > 0 && lastRowItems < cols {
+					itemClass += fmt.Sprintf(" col-span-%d", spanNeeded)
+				} }}
+
+				<div class={ itemClass }>
 					<div class="flex flex-col gap-2">
 						<span class="text-xl text-white">{ alarmWithSignal.Alarm.Name }</span>
 						if len(alarmWithSignal.Signals) > 0 {
@@ -85,6 +117,9 @@ func getAlarmStatusColor(alarmSignals alarm.AlarmSignals) string {
 	if lastStatus == "healthy" {
 		return "bg-green-500"
 	}
+    if lastStatus == "unknown" {
+        return "bg-gray-500"
+    }
 	return "bg-red-500"
 }
 

@@ -7,11 +7,134 @@ templ Base(children templ.Component) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Mirante Alerts</title>
+			<link id="favicon" rel="icon" type="image/png" href="/static/img/favicon-green.png"/>
 			<script src="https://cdn.tailwindcss.com"></script>
 			<link rel="stylesheet" href="/static/css/style.css"/>
 		</head>
 		<body class="h-full w-full overflow-hidden">
-			@children
+			<div id="alarms-container">
+				@children
+			</div>
+			<script>
+				function createFavicon(color) {
+					const canvas = document.createElement('canvas');
+					canvas.width = 32;
+					canvas.height = 32;
+					const ctx = canvas.getContext('2d');
+					ctx.beginPath();
+					ctx.arc(16, 16, 14, 0, 2 * Math.PI);
+					ctx.fillStyle = color;
+					ctx.fill();
+					ctx.lineWidth = 2;
+					ctx.strokeStyle = '#333';
+					ctx.stroke();
+
+					return canvas.toDataURL('image/png');
+				}
+
+				const greenFavicon = createFavicon('#10b981'); // Tailwind green-500
+				const redFavicon = createFavicon('#ef4444');   // Tailwind red-500
+
+				function updateFavicon(container) {
+					const favicon = document.getElementById('favicon');
+					const unhealthyElements = container.querySelectorAll('.bg-red-500, .text-red-500, [data-status="unhealthy"], [data-status="red"]');
+					if (unhealthyElements.length > 0) {
+						favicon.href = redFavicon;
+						document.title = `(${unhealthyElements.length}) Mirante Alerts`;
+					} else {
+						favicon.href = greenFavicon;
+						document.title = 'Mirante Alerts';
+					}
+				}
+
+				function initWebSocket() {
+					let ws = null;
+					let reconnectAttempts = 0;
+					const maxReconnectAttempts = 5;
+					const reconnectDelay = 5000;
+
+					if (window.currentWS) {
+						window.currentWS.close();
+					}
+
+					const connect = () => {
+						const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+						ws = new WebSocket(`${protocol}${window.location.host}/ws?path=${window.location.pathname}`);
+						window.currentWS = ws;
+
+						ws.onopen = () => {
+							reconnectAttempts = 0;
+						};
+
+						ws.onmessage = async (event) => {
+							try {
+								const html = await event.data.text();
+								const parser = new DOMParser();
+								const doc = parser.parseFromString(html, 'text/html');
+								const newContent = doc.getElementById('alarms-container').innerHTML;
+
+								document.getElementById('alarms-container').innerHTML = newContent;
+								updateFavicon(document.getElementById('alarms-container'));
+							} catch (error) {
+								console.error('Error processing message:', error);
+							}
+						};
+
+						ws.onclose = (event) => {
+							if (event.code !== 1000) {
+								if (reconnectAttempts < maxReconnectAttempts) {
+									reconnectAttempts++;
+									setTimeout(connect, reconnectDelay);
+								} else {
+									window.location.reload();
+								}
+							}
+						};
+
+						ws.onerror = (error) => {
+							console.error('WebSocket error:', error);
+						};
+					};
+
+					function fetchws() {
+						fetch(window.location.href)
+							.then(response => response.text())
+							.then(html => {
+								const parser = new DOMParser();
+								const doc = parser.parseFromString(html, 'text/html');
+								const newContent = doc.getElementById('alarms-container').innerHTML;
+
+								document.getElementById('alarms-container').innerHTML = newContent;
+								updateFavicon(document.getElementById('alarms-container'));
+							});
+					}
+
+					connect();
+
+					const navigationHandler = () => {
+						console.log('reinitializing ws connection');
+						if (ws.readyState === WebSocket.OPEN) {
+							ws.close(1000, 'Normal navigation closure');
+						}
+						connect();
+						fetchws();
+					};
+
+					window.addEventListener('popstate', navigationHandler);
+					window.addEventListener('pageshow', (event) => {
+						if (event.persisted) navigationHandler();
+					});
+
+					window.addEventListener('beforeunload', () => {
+						ws.close(1000, 'Page unload');
+					});
+				}
+
+				document.addEventListener('DOMContentLoaded', function() {
+					initWebSocket();
+					updateFavicon(document.getElementById('alarms-container'));
+				});
+			</script>
 		</body>
 	</html>
 }

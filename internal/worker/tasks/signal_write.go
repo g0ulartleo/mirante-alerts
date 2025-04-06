@@ -31,6 +31,7 @@ func HandleSignalWriteTask(ctx context.Context, t *asynq.Task, signalService *si
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
+
 	log.Printf("Writing signal: signal=%v", p.Signal)
 	return signalService.WriteSignal(p.Signal)
 }
