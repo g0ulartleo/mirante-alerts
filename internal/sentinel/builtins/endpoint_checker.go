@@ -54,15 +54,27 @@ func (e *EndpointCheckerSentinel) Configure(config map[string]interface{}) error
 }
 
 func (e *EndpointCheckerSentinel) Check(ctx context.Context, alarmID string) (signal.Signal, error) {
-	start := time.Now()
-	response, err := e.client.Get(e.url)
-	responseTime := time.Since(start)
+	const maxRetries = 2
+	var response *http.Response
+	var err error
+	var responseTime time.Duration
+
+	for range maxRetries {
+		startTime := time.Now()
+		response, err = e.client.Get(e.url)
+		if err == nil {
+			responseTime = time.Since(startTime)
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+
 	if err != nil {
 		return signal.Signal{
 			AlarmID:   alarmID,
 			Status:    signal.StatusUnhealthy,
 			Timestamp: time.Now(),
-			Message:   fmt.Sprintf("error checking endpoint: %v", err),
+			Message:   fmt.Sprintf("failed after %d attempts: %v", maxRetries, err),
 		}, nil
 	}
 	defer response.Body.Close()
