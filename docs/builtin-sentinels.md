@@ -37,3 +37,18 @@ config:
   expected: 100
 ```
 
+### SQS Count Checker
+
+The SQS Count Checker sentinel type monitors the number of messages in an Amazon SQS queue and alerts if it exceeds a specified threshold.
+
+#### Configuration
+
+```yaml
+id: queue-backlog-monitor
+name: SQS Queue Message Count Monitor
+type: sqs-count-checker
+config:
+  queue_url: https://sqs.us-east-1.amazonaws.com/123456789012/my-queue
+  max_message_count: 1000
+  aws_region: us-east-1
+```

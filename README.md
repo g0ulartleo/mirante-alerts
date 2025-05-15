@@ -95,6 +95,7 @@ If you have been using it, and feel that this is useful, consider contribuiting 
 
 - **EndpointChecker**: Performs HTTP operations on URLs and validates responses based on configuration
 - **MySQLCountChecker**: Executes SQL queries that return counts and validates them against expected values
+- **SQSCountChecker**: Monitors the number of messages in an SQS queue and alerts if it exceeds a threshold
 - See all built-in sentinels with configuration examples [here](docs/builtin-sentinels.md)
 
 
