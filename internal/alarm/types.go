@@ -14,8 +14,8 @@ type Alarm struct {
 	Notifications AlarmNotifications `yaml:"notifications"`
 }
 
-func HasNotificationsEnabled(alarm *Alarm) bool {
-	return len(alarm.Notifications.Email.To) > 0 || alarm.Notifications.Slack.WebhookURL != ""
+func (a *Alarm) HasNotificationsEnabled() bool {
+	return len(a.Notifications.Email.To) > 0 || a.Notifications.Slack.WebhookURL != ""
 }
 
 type AlarmNotifications struct {
