@@ -1,19 +1,19 @@
 package connections
 
 import (
+	"encoding/base64"
 	"fmt"
-	"os"
 	"time"
 
 	"golang.org/x/crypto/ssh"
 )
 
 type TunnelConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	PemFile  string
+	Host       string
+	Port       int
+	User       string
+	Password   string
+	PrivateKey string
 }
 
 func NewTunnelConfig(config map[string]any) (*TunnelConfig, error) {
@@ -30,12 +30,17 @@ func NewTunnelConfig(config map[string]any) (*TunnelConfig, error) {
 	if _, ok := config["password"]; ok {
 		c.Password = config["password"].(string)
 	}
-	if _, ok := config["pem_file"]; ok {
-		c.PemFile = config["pem_file"].(string)
+	if _, ok := config["private_key_base64"]; ok {
+		decodedKey, err := base64.StdEncoding.DecodeString(config["private_key_base64"].(string))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode private key: %v", err)
+		}
+		c.PrivateKey = string(decodedKey)
+
 	}
 	if c.Host != "" {
-		if c.PemFile == "" && c.Password == "" {
-			return nil, fmt.Errorf("missing required field: pem_file or password")
+		if c.PrivateKey == "" && c.Password == "" {
+			return nil, fmt.Errorf("missing required field: private_key or password")
 		}
 		if c.User == "" {
 			return nil, fmt.Errorf("missing required field: user")
@@ -51,12 +56,8 @@ func NewSSHClient(config TunnelConfig) (*ssh.Client, error) {
 	tunnelAddr := fmt.Sprintf("%s:%d", config.Host, config.Port)
 	var sshConfig *ssh.ClientConfig
 
-	if config.PemFile != "" {
-		key, err := os.ReadFile(config.PemFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read PEM file: %v", err)
-		}
-		signer, err := ssh.ParsePrivateKey(key)
+	if config.PrivateKey != "" {
+		signer, err := ssh.ParsePrivateKey([]byte(config.PrivateKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse private key: %v", err)
 		}
