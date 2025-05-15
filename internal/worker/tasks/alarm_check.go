@@ -74,7 +74,7 @@ func HandleAlarmCheckTask(
 		return fmt.Errorf("failed to enqueue dashboard notify task: %w", err)
 	}
 
-	if alarm.HasNotificationsEnabled(alarmConfig) {
+	if alarmConfig.HasNotificationsEnabled() {
 		if sig.Status == signal.StatusUnknown && !alarmConfig.Notifications.NotifyMissingSignals {
 			return nil
 		}
