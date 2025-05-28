@@ -1,17 +1,25 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/cli"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
+	"gopkg.in/yaml.v3"
 )
 
 type GetAlarmCommand struct{}
 
 func (c *GetAlarmCommand) Name() string {
 	return "get-alarm"
+}
+
+func (c *GetAlarmCommand) Description() string {
+	return "Get detailed information about a specific alarm in YAML format"
+}
+
+func (c *GetAlarmCommand) Usage() string {
+	return "get-alarm <alarm-id>"
 }
 
 func (c *GetAlarmCommand) Run(args []string) error {
@@ -31,11 +39,11 @@ func (c *GetAlarmCommand) Run(args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get alarm: %w", err)
 	}
-	jsonData, err := json.MarshalIndent(alarm, "", "  ")
+	yamlData, err := yaml.Marshal(alarm)
 	if err != nil {
 		return fmt.Errorf("failed to marshal alarm: %w", err)
 	}
-	fmt.Printf("%s\n", jsonData)
+	fmt.Printf("%s", yamlData)
 	return nil
 }
 

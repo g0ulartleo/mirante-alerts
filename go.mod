@@ -4,8 +4,10 @@ go 1.23.6
 
 require (
 	github.com/a-h/templ v0.3.833
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hibiken/asynq v0.25.1
 	github.com/labstack/echo/v4 v4.13.3
+	golang.org/x/oauth2 v0.24.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -23,6 +25,7 @@ require (
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect

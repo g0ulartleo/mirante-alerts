@@ -15,6 +15,14 @@ func (c *SetAlarmCommand) Name() string {
 	return "set-alarm"
 }
 
+func (c *SetAlarmCommand) Description() string {
+	return "Create or update an alarm from a YAML configuration file"
+}
+
+func (c *SetAlarmCommand) Usage() string {
+	return "set-alarm <file>"
+}
+
 func (c *SetAlarmCommand) Run(args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("usage: ./cli %s <file>", c.Name())

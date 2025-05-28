@@ -7,29 +7,39 @@ import (
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 )
 
-type ConfigCommand struct{}
+type AuthKeyCommand struct{}
 
-func (c *ConfigCommand) Name() string {
-	return "config"
+func (c *AuthKeyCommand) Name() string {
+	return "auth-key"
 }
 
-func (c *ConfigCommand) Run(args []string) error {
+func (c *AuthKeyCommand) Description() string {
+	return "Authenticate with the Mirante server using an API key"
+}
+
+func (c *AuthKeyCommand) Usage() string {
+	return "auth-key <api_host> <api_key>"
+}
+
+func (c *AuthKeyCommand) Run(args []string) error {
 	if len(args) < 2 {
-		return fmt.Errorf("usage: ./cli config <api_host> <api_key>")
+		return fmt.Errorf("usage: ./cli auth-key <api_host> <api_key>")
 	}
 
 	apiHost := args[0]
 	apiKey := args[1]
 
 	cliConfig := &config.CLIConfig{
-		APIHost: apiHost,
-		APIKey:  apiKey,
+		APIHost:   apiHost,
+		APIKey:    apiKey,
+		AuthType:  "api_key",
+		AuthToken: "", // Clear OAuth token when using API key
 	}
 
 	return config.SaveCLIConfig(cliConfig)
 }
 
 func init() {
-	c := &ConfigCommand{}
+	c := &AuthKeyCommand{}
 	cli.RegisterCommand(c.Name(), c)
 }

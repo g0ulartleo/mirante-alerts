@@ -15,26 +15,40 @@ services:
       - 40169:40169
     env_file:
       - .env
-    volumes:
-      - .:/app
     environment:
       - AIR_FORCE_BUILD=true
+      - REDIS_ADDR=redis:6379
+      - HTTP_ADDR=0.0.0.0
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
 
   worker:
     build: .
     command: air -c .air/.worker.air.toml
     env_file:
       - .env
-    volumes:
-      - .:/app
     environment:
       - AIR_FORCE_BUILD=true
+      - REDIS_ADDR=redis:6379
+      - AWS_SHARED_CREDENTIALS_FILE=/root/.aws/credentials
+      - AWS_CONFIG_FILE=/root/.aws/config
+    volumes:
+      - .:/app
+      - ~/.aws:/root/.aws:ro
+    depends_on:
+      - redis
 
   scheduler:
     build: .
     command: go run -tags=dev cmd/scheduler/main.go
     env_file:
       - .env
+    environment:
+      - REDIS_ADDR=redis:6379
     volumes:
       - .:/app
+    depends_on:
+      - redis
 

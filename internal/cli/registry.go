@@ -4,6 +4,8 @@ import "fmt"
 
 type Command interface {
 	Name() string
+	Description() string
+	Usage() string
 	Run(args []string) error
 }
 

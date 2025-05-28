@@ -1,0 +1,36 @@
+# Example OAuth Configuration for mirante-alerts
+# This file contains non-sensitive OAuth configuration.
+# All secrets should be configured in your .env file.
+
+oauth:
+  # Enable OAuth authentication
+  enabled: true
+  
+  # OAuth provider: "google" or "github"
+  provider: "google"
+  
+  # Redirect URL (must match what you configured in your OAuth provider)
+  redirect_url: "http://localhost:40169/auth/callback"
+  
+  # Access control - choose one or both methods:
+  
+  # Method 1: Allow all users from specific email domains
+  allowed_domains:
+    - "@company.com"
+    - "@contractor.company.com"
+  
+  # Method 2: Allow specific individual email addresses
+  allowed_emails:
+    - "admin@company.com"
+    - "developer@company.com"
+  
+  # JWT configuration
+  session_timeout: "24h"  # Valid formats: "1h", "24h", "7d", etc.
+
+# API key (ignored when using OAuth)
+api_key: ""
+
+# OAuth secrets should be configured in your .env file:
+# OAUTH_CLIENT_ID=your-oauth-client-id
+# OAUTH_CLIENT_SECRET=your-oauth-client-secret
+# OAUTH_JWT_SECRET=your-secure-jwt-secret-key

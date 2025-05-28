@@ -47,8 +47,7 @@ func main() {
 		return c.String(http.StatusOK, "pong")
 	})
 
-	apiGroup := e.Group("/api")
-	api.RegisterRoutes(apiGroup, signalService, alarmService, asyncClient)
+	api.RegisterRoutes(e, signalService, alarmService, asyncClient)
 
 	dashboardGroup := e.Group("")
 	dashboardGroup.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {

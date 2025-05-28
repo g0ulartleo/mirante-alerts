@@ -21,6 +21,9 @@ type Environment struct {
 	APIKey            string
 	BasicAuthUsername string
 	BasicAuthPassword string
+	OAuthClientID     string
+	OAuthClientSecret string
+	OAuthJWTSecret    string
 }
 
 var (
@@ -58,6 +61,9 @@ func Env() *Environment {
 			APIKey:            os.Getenv("API_KEY"),
 			BasicAuthUsername: os.Getenv("DASHBOARD_BASIC_AUTH_USERNAME"),
 			BasicAuthPassword: os.Getenv("DASHBOARD_BASIC_AUTH_PASSWORD"),
+			OAuthClientID:     os.Getenv("OAUTH_CLIENT_ID"),
+			OAuthClientSecret: os.Getenv("OAUTH_CLIENT_SECRET"),
+			OAuthJWTSecret:    os.Getenv("OAUTH_JWT_SECRET"),
 		}
 	})
 
