@@ -98,6 +98,9 @@ func (c *Client) readPump() {
 	var message []byte
 	for {
 		if err := websocket.Message.Receive(c.conn, &message); err != nil {
+			if err.Error() == "EOF" || err.Error() == "websocket: close sent" {
+				return
+			}
 			log.Printf("error receiving message: %v", err)
 			break
 		}
