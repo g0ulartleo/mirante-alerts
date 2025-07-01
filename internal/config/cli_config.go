@@ -7,8 +7,10 @@ import (
 )
 
 type CLIConfig struct {
-	APIHost string `json:"api_host"`
-	APIKey  string `json:"api_key"`
+	APIHost   string `json:"api_host"`
+	APIKey    string `json:"api_key,omitempty"`
+	AuthToken string `json:"auth_token,omitempty"`
+	AuthType  string `json:"auth_type"`
 }
 
 func GetCLIConfigPath() (string, error) {
@@ -30,8 +32,8 @@ func LoadCLIConfig() (*CLIConfig, error) {
 	}
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return &CLIConfig{
-			APIHost: "http://127.0.0.1:40169",
-			APIKey:  "",
+			APIHost:  "http://127.0.0.1:40169",
+			AuthType: "api_key",
 		}, nil
 	}
 	data, err := os.ReadFile(configPath)
@@ -42,6 +44,17 @@ func LoadCLIConfig() (*CLIConfig, error) {
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
+
+	if config.AuthType == "" {
+		if config.APIKey != "" {
+			config.AuthType = "api_key"
+		} else if config.AuthToken != "" {
+			config.AuthType = "oauth"
+		} else {
+			config.AuthType = "api_key"
+		}
+	}
+
 	return &config, nil
 }
 

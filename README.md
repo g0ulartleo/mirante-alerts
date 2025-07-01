@@ -4,7 +4,7 @@ mirante-alerts is an open-source monitoring system designed to watch over multip
 
 ## Current Status
 This project was created initally for learning purposes and it is still under development, so production usage is not yet recommended.
-If you have been using it, and feel that this is useful, consider contribuiting :) 
+If you have been using it, and feel that this is useful, consider contribuiting :)
 
 ## Getting Started
 
@@ -22,27 +22,132 @@ If you have been using it, and feel that this is useful, consider contribuiting 
    cd mirante-alerts
    ```
 
-2. **Configure Environment Variables**
+2. **Initial Setup**
+   ```bash
+   make setup
+   ```
+   This creates a sample `.env` file with all available configuration options and necessary directories.
 
-   Create a `.env` file or set environment variables as necessary. The following variables are available:
+3. **Configure Environment Variables**
+
+   Edit the `.env` file created by the setup command. The following variables are available:
    - `REDIS_ADDR` (default: `127.0.0.1:6379`)
    - `DB_DRIVER` (set to `redis` or `mysql` or `sqlite`)
    - `API_KEY`
    - For MySQL storage:
-     - `DB_HOST`
-     - `DB_PORT`
-     - `DB_USER`
-     - `DB_PASSWORD`
+     - `MYSQL_DB_HOST`
+     - `MYSQL_DB_PORT`
+     - `MYSQL_DB_USER`
+     - `MYSQL_DB_PASSWORD`
    - For email notifications:
      - `SMTP_HOST`
      - `SMTP_PORT`
      - `SMTP_USER`
      - `SMTP_PASSWORD`
+   - For HTTP server:
+     - `HTTP_ADDR` (default: `127.0.0.1`)
+     - `HTTP_PORT` (default: `40169`)
+   - For OAuth authentication:
+     - `OAUTH_CLIENT_ID`
+     - `OAUTH_CLIENT_SECRET`
+     - `OAUTH_JWT_SECRET`
+   - For dashboard basic auth (optional):
+     - `DASHBOARD_BASIC_AUTH_USERNAME`
+     - `DASHBOARD_BASIC_AUTH_PASSWORD`
 
-3. **Install Dependencies**
+4. **Install Dependencies**
    ```bash
    go mod download
    ```
+
+## Authentication
+
+mirante-alerts supports two authentication methods:
+
+### OAuth Authentication (Recommended for production/multi-user setups)
+
+OAuth authentication allows you to control access using your existing Google or GitHub accounts, with fine-grained control over who can access your monitoring system.
+
+#### Setting up OAuth
+
+1. **Initialize OAuth Configuration**
+   ```bash
+   make init-oauth
+   ```
+   This creates a sample configuration file at `config/auth.yaml`.
+
+2. **Configure OAuth Provider**
+
+   **For Google OAuth:**
+   - Go to [Google Cloud Console](https://console.developers.google.com/)
+   - Create a new project or select existing
+   - Enable Google+ API
+   - Create OAuth 2.0 credentials
+   - Set authorized redirect URI to: `http://your-domain:40169/auth/callback`
+
+   **For GitHub OAuth:**
+   - Go to [GitHub OAuth Apps](https://github.com/settings/applications/new)
+   - Create a new OAuth App
+   - Set Authorization callback URL to: `http://your-domain:40169/auth/callback`
+
+3. **Update Configuration**
+
+   **First, configure OAuth secrets in your `.env` file:**
+   ```bash
+   # OAuth Configuration
+   OAUTH_CLIENT_ID=your-oauth-client-id
+   OAUTH_CLIENT_SECRET=your-oauth-client-secret
+   OAUTH_JWT_SECRET=your-secure-jwt-secret-key
+   ```
+
+   **Then, edit `config/auth.yaml` for non-sensitive settings:**
+   ```yaml
+   oauth:
+     enabled: true
+     provider: "google"  # or "github"
+     redirect_url: "http://your-domain:40169/auth/callback"
+     allowed_domains:
+       - "@yourcompany.com"
+       - "@contractor.yourcompany.com"
+     allowed_emails:
+       - "admin@yourcompany.com"
+       - "developer@yourcompany.com"
+     session_timeout: "24h"
+   ```
+
+4. **CLI Authentication**
+   ```bash
+   ./bin/cli auth http://your-domain:40169
+   ```
+   This will open your browser for authentication and save the token locally.
+
+#### Access Control
+
+You can control access using two methods:
+
+- **Domain-based:** Allow all users with emails from specific domains
+  ```yaml
+  allowed_domains:
+    - "@yourcompany.com"
+    - "@contractor.yourcompany.com"
+  ```
+
+- **Email-based:** Allow specific individual email addresses
+  ```yaml
+  allowed_emails:
+    - "john@company.com"
+    - "jane@company.com"
+  ```
+
+### Basic API Key Authentication
+
+For a simple API-Key setup
+
+```bash
+./bin/cli auth-key <your_endpoint> <api_key>
+```
+
+Set the `API_KEY` environment variable on your server.
 
 4. **Setting Up Alarms**
 
@@ -70,19 +175,19 @@ If you have been using it, and feel that this is useful, consider contribuiting 
 
    If you are hosting mirante in your servers, you can also manage alarms using the CLI.
 
-   Start with setting up config, and then using `help` to see the available commands
+   Start with setting up authentication, and then using `help` to see the available commands
    ```bash
-   $ ./bin/cli config <your_endpoint> <api_key>
+   # For OAuth authentication
+   $ ./bin/cli auth <your_endpoint>
+
+   # Or for API key authentication
+   $ ./bin/cli auth-key <your_endpoint> <api_key>
+
    $ ./bin/cli help
    ```
 
 ## Architecture
 
-### Core Components
-
-- **Alarms**: The main monitoring unit that defines what to check and how often
-- **Sentinels**: The actual monitoring strategies that perform health checks
-- **Signals**: The results of health checks, stored for historical tracking
 
 ### System Components
 

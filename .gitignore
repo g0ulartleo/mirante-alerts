@@ -9,5 +9,5 @@ static/css/style.css
 bin/
 sqlite.db
 .redis-data/
-config/
+/config/
 *.sh

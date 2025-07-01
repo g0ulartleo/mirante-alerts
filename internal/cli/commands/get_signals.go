@@ -2,17 +2,24 @@ package commands
 
 import (
 	"fmt"
-    "time"
+	"time"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/cli"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
-
 )
 
 type GetSignalsCommand struct{}
 
 func (c *GetSignalsCommand) Name() string {
 	return "get-signals"
+}
+
+func (c *GetSignalsCommand) Description() string {
+	return "Get the latest signals/status history for a specific alarm"
+}
+
+func (c *GetSignalsCommand) Usage() string {
+	return "get-signals <alarm-id>"
 }
 
 func (c *GetSignalsCommand) Run(args []string) error {
@@ -28,14 +35,14 @@ func (c *GetSignalsCommand) Run(args []string) error {
 	}
 	apiClient := NewAPIClient(cliConfig)
 
-    signals, err := apiClient.GetAlarmSignals(alarmID)
-    if err != nil {
+	signals, err := apiClient.GetAlarmSignals(alarmID)
+	if err != nil {
 		return fmt.Errorf("failed to get alarm signals: %w", err)
 
 	}
-    for _, signal := range signals {
-        fmt.Printf("[%s][%s]: %s\n", signal.Timestamp.Format(time.RFC3339), signal.Status, signal.Message)
-    }
+	for _, signal := range signals {
+		fmt.Printf("[%s][%s]: %s\n", signal.Timestamp.Format(time.RFC3339), signal.Status, signal.Message)
+	}
 	return nil
 }
 

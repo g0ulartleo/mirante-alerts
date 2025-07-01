@@ -43,7 +43,27 @@ func (c *Client) doRequest(method, endpoint string, body any) ([]byte, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-API-Key", c.config.APIKey)
+
+	switch c.config.AuthType {
+	case "oauth":
+		if c.config.AuthToken == "" {
+			return nil, fmt.Errorf("no OAuth token configured. Run './cli auth <api_host>' to authenticate")
+		}
+		req.Header.Set("Authorization", "Bearer "+c.config.AuthToken)
+	case "api_key":
+		if c.config.APIKey == "" {
+			return nil, fmt.Errorf("no API key configured. Run './cli config <api_host> <api_key>' to configure")
+		}
+		req.Header.Set("X-API-Key", c.config.APIKey)
+	default:
+		if c.config.AuthToken != "" {
+			req.Header.Set("Authorization", "Bearer "+c.config.AuthToken)
+		} else if c.config.APIKey != "" {
+			req.Header.Set("X-API-Key", c.config.APIKey)
+		} else {
+			return nil, fmt.Errorf("no authentication configured. Run './cli auth <api_host>' or './cli config <api_host> <api_key>'")
+		}
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -52,6 +72,10 @@ func (c *Client) doRequest(method, endpoint string, body any) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
+		errorBody, _ := io.ReadAll(resp.Body)
+		if len(errorBody) > 0 {
+			return nil, fmt.Errorf("API error (%s): %s", resp.Status, string(errorBody))
+		}
 		return nil, fmt.Errorf("API error: %s", resp.Status)
 	}
 
@@ -59,7 +83,7 @@ func (c *Client) doRequest(method, endpoint string, body any) ([]byte, error) {
 }
 
 func (c *Client) ListAlarms() ([]alarm.Alarm, error) {
-	data, err := c.doRequest(http.MethodGet, "/api/list_alarms", nil)
+	data, err := c.doRequest(http.MethodGet, "/api/alarms", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +97,7 @@ func (c *Client) ListAlarms() ([]alarm.Alarm, error) {
 }
 
 func (c *Client) GetAlarm(id string) (*alarm.Alarm, error) {
-	endpoint := path.Join("/api/alarm", id)
+	endpoint := path.Join("/api/alarms", id)
 	data, err := c.doRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -88,18 +112,18 @@ func (c *Client) GetAlarm(id string) (*alarm.Alarm, error) {
 }
 
 func (c *Client) DeleteAlarm(id string) error {
-	endpoint := path.Join("/api/alarm", id)
+	endpoint := path.Join("/api/alarms", id)
 	_, err := c.doRequest(http.MethodDelete, endpoint, nil)
 	return err
 }
 
 func (c *Client) SetAlarm(a *alarm.Alarm) error {
-	_, err := c.doRequest(http.MethodPost, "/api/alarm", a)
+	_, err := c.doRequest(http.MethodPost, "/api/alarms", a)
 	return err
 }
 
 func (c *Client) GetAlarmSignals(id string) ([]signal.Signal, error) {
-	endpoint := path.Join("/api/alarm", id, "signals")
+	endpoint := path.Join("/api/alarms", id, "signals")
 	data, err := c.doRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -114,7 +138,7 @@ func (c *Client) GetAlarmSignals(id string) ([]signal.Signal, error) {
 }
 
 func (c *Client) CheckAlarm(id string) error {
-	endpoint := path.Join("/api/alarm", id, "check")
+	endpoint := path.Join("/api/alarms", id, "check")
 	_, err := c.doRequest(http.MethodPost, endpoint, nil)
 	return err
 }

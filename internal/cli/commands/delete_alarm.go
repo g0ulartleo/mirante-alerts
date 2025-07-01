@@ -14,6 +14,14 @@ func (c *DeleteAlarmCommand) Name() string {
 	return "delete-alarm"
 }
 
+func (c *DeleteAlarmCommand) Description() string {
+	return "Delete an alarm by its ID"
+}
+
+func (c *DeleteAlarmCommand) Usage() string {
+	return "delete-alarm <alarm-id>"
+}
+
 func (c *DeleteAlarmCommand) Run(args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("usage: ./cli %s <alarm-id>", c.Name())

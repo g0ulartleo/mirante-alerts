@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/g0ulartleo/mirante-alerts/internal/alarm"
+	"github.com/g0ulartleo/mirante-alerts/internal/auth"
 	"github.com/g0ulartleo/mirante-alerts/internal/config"
 	"github.com/g0ulartleo/mirante-alerts/internal/signal"
 	"github.com/g0ulartleo/mirante-alerts/internal/web/dashboard"
@@ -25,15 +26,41 @@ func APIKeyAuthMiddleware() echo.MiddlewareFunc {
 	}
 }
 
-func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) {
-	if config.Env().APIKey == "" {
-		log.Println("API_KEY is not set")
-		return
+func RegisterRoutes(e *echo.Echo, signalService *signal.Service, alarmService *alarm.AlarmService, asyncClient *asynq.Client) {
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		log.Printf("Error loading auth config, using environment API key: %v", err)
+		authConfig = &config.AuthConfig{
+			OAuth:  config.OAuthConfig{Enabled: false},
+			APIKey: config.Env().APIKey,
+		}
 	}
 
-	api.Use(APIKeyAuthMiddleware())
+	if authConfig.OAuth.Enabled {
+		oauthService, err := auth.NewOAuthService(authConfig)
+		if err != nil {
+			log.Printf("Error creating OAuth service: %v", err)
+		} else {
+			oauthHandlers := auth.NewOAuthHandlers(oauthService)
 
-	api.GET("/alarm/signals", func(c echo.Context) error {
+			e.GET("/auth/login", oauthHandlers.LoginHandler, auth.LoginRateLimitMiddleware(5))
+			e.GET("/auth/callback", oauthHandlers.CallbackHandler, auth.AuthRateLimitMiddleware(10))
+			e.POST("/auth/logout", oauthHandlers.LogoutHandler, auth.AuthRateLimitMiddleware(10))
+			e.GET("/auth/status", oauthHandlers.StatusHandler, auth.AuthRateLimitMiddleware(10))
+		}
+	}
+
+	api := e.Group("/api")
+
+	if authConfig.OAuth.Enabled || authConfig.APIKey != "" {
+		api.Use(auth.AuthenticationMiddleware())
+	} else {
+		log.Println("Warning: No authentication method configured")
+	}
+
+	api.Use(auth.AuthRateLimitMiddleware(45))
+
+	api.GET("/alarms/signals", func(c echo.Context) error {
 		alarmSignals, err := dashboard.GetAlarmSignals(signalService, alarmService)
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
@@ -42,7 +69,7 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 		return c.JSON(http.StatusOK, alarmSignals)
 	})
 
-	api.GET("/alarm/:alarm_id/signals", func(c echo.Context) error {
+	api.GET("/alarms/:alarm_id/signals", func(c echo.Context) error {
 		alarmID := c.Param("alarm_id")
 		alarmSignals, err := signalService.GetAlarmLatestSignals(alarmID, 10)
 		if err != nil {
@@ -52,7 +79,7 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 		return c.JSON(http.StatusOK, alarmSignals)
 	})
 
-	api.GET("/list_alarms", func(c echo.Context) error {
+	api.GET("/alarms", func(c echo.Context) error {
 		alarms, err := alarmService.GetAlarms()
 		if err != nil {
 			log.Printf("Error fetching config signals: %v", err)
@@ -61,7 +88,7 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 		return c.JSON(http.StatusOK, alarms)
 	})
 
-	api.GET("/alarm/:alarm_id", func(c echo.Context) error {
+	api.GET("/alarms/:alarm_id", func(c echo.Context) error {
 		alarmID := c.Param("alarm_id")
 		alarm, err := alarmService.GetAlarm(alarmID)
 		if err != nil {
@@ -71,7 +98,7 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 		return c.JSON(http.StatusOK, alarm)
 	})
 
-	api.DELETE("/alarm/:alarm_id", func(c echo.Context) error {
+	api.DELETE("/alarms/:alarm_id", func(c echo.Context) error {
 		alarmID := c.Param("alarm_id")
 		if err := alarmService.DeleteAlarm(alarmID); err != nil {
 			log.Printf("Error deleting alarm: %v", err)
@@ -80,7 +107,7 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 		return c.JSON(http.StatusOK, map[string]string{"message": "Alarm deleted"})
 	})
 
-	api.POST("/alarm", func(c echo.Context) error {
+	api.POST("/alarms", func(c echo.Context) error {
 		alarm := new(alarm.Alarm)
 		if err := c.Bind(alarm); err != nil {
 			log.Printf("Error binding alarm: %v", err)
@@ -93,7 +120,7 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 		return c.JSON(http.StatusOK, alarm)
 	})
 
-	api.POST("/alarm/:alarm_id/check", func(c echo.Context) error {
+	api.POST("/alarms/:alarm_id/check", func(c echo.Context) error {
 		alarmID := c.Param("alarm_id")
 		task, err := tasks.NewAlarmCheckTask(alarmID)
 		if err != nil {
@@ -105,5 +132,5 @@ func RegisterRoutes(api *echo.Group, signalService *signal.Service, alarmService
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, map[string]string{"message": "Task enqueued"})
-	})
+	}, auth.AuthRateLimitMiddleware(10))
 }
