@@ -93,7 +93,7 @@ func printPathTree(tree map[string]interface{}, level int) {
 
 		for i, a := range alarms {
 			fmt.Printf("%s• %s\n", indent, a.Name)
-			fmt.Printf("%s  ID: %s\n", indent, a.ID)
+			fmt.Printf("%s  ID: \033[1m%s\033[0m\n", indent, a.ID)
 			fmt.Printf("%s  Description: %s\n", indent, a.Description)
 
 			if i < len(alarms)-1 {
