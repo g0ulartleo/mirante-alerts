@@ -4,7 +4,7 @@ go 1.23.6
 
 require (
 	github.com/a-h/templ v0.3.906
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/hibiken/asynq v0.25.1
 	github.com/labstack/echo/v4 v4.13.3
 	golang.org/x/oauth2 v0.24.0
