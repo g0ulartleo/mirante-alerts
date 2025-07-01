@@ -95,7 +95,9 @@ func RegisterRoutes(e *echo.Echo, signalService *signal.Service, alarmService *a
 			log.Printf("Error fetching config signals: %v", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, alarm)
+
+		maskedAlarm := MaskSensitiveData(alarm)
+		return c.JSON(http.StatusOK, maskedAlarm)
 	})
 
 	api.DELETE("/alarms/:alarm_id", func(c echo.Context) error {
