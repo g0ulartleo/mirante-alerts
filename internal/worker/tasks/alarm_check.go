@@ -40,18 +40,48 @@ func HandleAlarmCheckTask(
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
+	if err := checkAlarm(ctx, payload, sentinelFactory, signalService, alarmService, asyncClient); err != nil {
+		return err
+	}
+	return nil
+}
+
+func checkAlarm(
+	ctx context.Context,
+	payload AlarmCheckPayload,
+	sentinelFactory *sentinel.SentinelFactory,
+	signalService *signal.Service,
+	alarmService *alarm.AlarmService,
+	asyncClient *asynq.Client,
+) error {
 	alarmConfig, err := alarmService.GetAlarm(payload.AlarmID)
 	if err != nil {
 		return fmt.Errorf("failed to load alarm config: %v: %w", err, asynq.SkipRetry)
 	}
 	sentinel, err := initializeSentinel(alarmConfig, sentinelFactory)
 	if err != nil {
-		return fmt.Errorf("failed to initialize sentinel: %w", err)
+		writeErr := signalService.WriteSignal(signal.Signal{
+			AlarmID: payload.AlarmID,
+			Status:  signal.StatusUnknown,
+			Message: fmt.Sprintf("failed to initialize sentinel: %v", err),
+		})
+		if writeErr != nil {
+			return fmt.Errorf("failed to write signal: %w", writeErr)
+		}
+		return err
 	}
 	log.Printf("Sentinel checking alarm ID %s", payload.AlarmID)
 	sig, err := sentinel.Check(ctx, payload.AlarmID)
 	if err != nil {
-		return fmt.Errorf("failed to check sentinel: %w", err)
+		err = signalService.WriteSignal(signal.Signal{
+			AlarmID: payload.AlarmID,
+			Status:  signal.StatusUnknown,
+			Message: fmt.Sprintf("failed to check sentinel: %v", err),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to write signal: %w", err)
+		}
+		return nil
 	}
 	log.Printf("Alarm %s returned signal: %v", payload.AlarmID, sig)
 	err = signalService.WriteSignal(sig)
