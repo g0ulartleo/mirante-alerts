@@ -2,7 +2,12 @@ help:
 	@echo "Available commands:"
 	@echo "  go-install-air           Install Air for live reloading"
 	@echo "  go-install-templ         Install Templ for template generation"
-	@echo "  build                    Build the application"
+	@echo "  build                    Build all application components"
+	@echo "  build-cli                Build only the CLI binary"
+	@echo "  build-cli-all-platforms  Build CLI for all platforms (Linux, macOS, Windows)"
+	@echo "  package-cli              Build and package CLI for distribution"
+	@echo "  install-cli              Install CLI to /usr/local/bin"
+	@echo "  clean-dist               Clean distribution files"
 	@echo "  init-oauth               Initialize OAuth configuration"
 	@echo "  setup                    Create sample environment configuration"
 
@@ -98,3 +103,51 @@ setup:
 	@echo "- redis: Fast, in-memory storage (default)"
 	@echo "- mysql: Persistent SQL database"
 	@echo "- sqlite: Local file-based database"
+
+.PHONY: build-cli-all-platforms
+build-cli-all-platforms:
+	@echo "Building CLI for all platforms..."
+	@mkdir -p ./dist
+
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-linux-amd64 ./cmd/cli/main.go
+	GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ./dist/mirante-linux-arm64 ./cmd/cli/main.go
+	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-darwin-amd64 ./cmd/cli/main.go
+	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ./dist/mirante-darwin-arm64 ./cmd/cli/main.go
+	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-windows-amd64.exe ./cmd/cli/main.go
+
+	@echo "✅ All platform binaries built in ./dist/"
+
+.PHONY: build-cli
+build-cli:
+	@echo "Building CLI..."
+	@mkdir -p ./bin
+	go build -ldflags="-s -w" -o ./bin/mirante ./cmd/cli/main.go
+
+.PHONY: package-cli
+package-cli: build-cli-all-platforms
+	@echo "Creating distribution packages..."
+	@cd dist && \
+	for file in mirante-*; do \
+		if [[ $$file == *.exe ]]; then \
+			zip "$${file%.exe}.zip" "$$file" && echo "Created $${file%.exe}.zip"; \
+		else \
+			tar -czf "$$file.tar.gz" "$$file" && echo "Created $$file.tar.gz"; \
+		fi \
+	done
+	@echo "✅ Distribution packages created in ./dist/"
+
+.PHONY: install-cli
+install-cli: build-cli
+	@echo "Installing mirante CLI to /usr/local/bin..."
+	@if [ -w "/usr/local/bin" ]; then \
+		cp ./bin/mirante /usr/local/bin/mirante; \
+	else \
+		sudo cp ./bin/mirante /usr/local/bin/mirante; \
+	fi
+	@echo "✅ mirante CLI installed to /usr/local/bin/mirante"
+
+.PHONY: clean-dist
+clean-dist:
+	@echo "Cleaning distribution files..."
+	@rm -rf ./dist
+	@echo "✅ Distribution files cleaned"
