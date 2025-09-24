@@ -25,7 +25,7 @@ build:
 	go build -o ./bin/http-server ./cmd/http-server/server.go
 	go build -o ./bin/worker ./cmd/worker-server/main.go
 	go build -o ./bin/scheduler ./cmd/scheduler/main.go
-	go build -o ./bin/mirante ./cmd/cli/main.go
+	go build -ldflags="-s -w" -o ./bin/mirante ./cmd/cli/main.go
 
 .PHONY: init-oauth
 init-oauth:
@@ -109,11 +109,11 @@ build-cli-all-platforms:
 	@echo "Building CLI for all platforms..."
 	@mkdir -p ./dist
 
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-linux-amd64 ./cmd/cli/main.go
-	GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ./dist/mirante-linux-arm64 ./cmd/cli/main.go
-	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-darwin-amd64 ./cmd/cli/main.go
-	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ./dist/mirante-darwin-arm64 ./cmd/cli/main.go
-	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-windows-amd64.exe ./cmd/cli/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-linux-amd64 ./cmd/cli/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ./dist/mirante-linux-arm64 ./cmd/cli/main.go
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-darwin-amd64 ./cmd/cli/main.go
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ./dist/mirante-darwin-arm64 ./cmd/cli/main.go
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/mirante-windows-amd64.exe ./cmd/cli/main.go
 
 	@echo "✅ All platform binaries built in ./dist/"
 
