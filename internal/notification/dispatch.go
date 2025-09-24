@@ -14,23 +14,13 @@ func Dispatch(alarmConfig *alarm.Alarm, sig signal.Signal) []error {
 		notifications = append(notifications, NewSlackNotification())
 	}
 
-	channel := make(chan error)
-	for _, notification := range notifications {
-		go func(notification Notification) {
-			err := notification.Build(alarmConfig, sig)
-			if err != nil {
-				channel <- err
-			}
-			err = notification.Send()
-			if err != nil {
-				channel <- err
-			}
-		}(notification)
-	}
-
 	errors := []error{}
-	for err := range channel {
-		if err != nil {
+	for _, n := range notifications {
+		if err := n.Build(alarmConfig, sig); err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		if err := n.Send(); err != nil {
 			errors = append(errors, err)
 		}
 	}
