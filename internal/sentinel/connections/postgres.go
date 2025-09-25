@@ -30,13 +30,11 @@ func NewPostgresConnectionConfig(config map[string]any) (*PostgresConnectionConf
 	}
 
 	c := PostgresConnectionConfig{
-		Host:      config["host"].(string),
-		Port:      getIntValue(config["port"]),
-		User:      config["user"].(string),
-		Password:  config["password"].(string),
-		Database:  config["database"].(string),
-		SSLMode:   config["sslmode"].(string),
-		SSLVerify: config["sslverify"].(bool),
+		Host:     config["host"].(string),
+		Port:     getIntValue(config["port"]),
+		User:     config["user"].(string),
+		Password: config["password"].(string),
+		Database: config["database"].(string),
 	}
 
 	if sslMode, ok := config["sslmode"].(string); ok {
