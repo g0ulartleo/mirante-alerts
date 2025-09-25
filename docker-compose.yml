@@ -9,31 +9,35 @@ services:
       - ./.redis-data:/data
 
   web:
-    build: .
+    build:
+      context: .
+      target: dev
     command: air -c .air/.air.toml
     ports:
       - 40169:40169
     env_file:
       - .env
     environment:
-      - AIR_FORCE_BUILD=true
       - REDIS_ADDR=redis:6379
       - HTTP_ADDR=0.0.0.0
+      - AIR_FORCE_BUILD=true
     volumes:
       - .:/app
     depends_on:
       - redis
 
   worker:
-    build: .
+    build:
+      context: .
+      target: dev
     command: air -c .air/.worker.air.toml
     env_file:
       - .env
     environment:
-      - AIR_FORCE_BUILD=true
       - REDIS_ADDR=redis:6379
       - AWS_SHARED_CREDENTIALS_FILE=/root/.aws/credentials
       - AWS_CONFIG_FILE=/root/.aws/config
+      - AIR_FORCE_BUILD=true
     volumes:
       - .:/app
       - ~/.aws:/root/.aws:ro
@@ -41,7 +45,9 @@ services:
       - redis
 
   scheduler:
-    build: .
+    build:
+      context: .
+      target: dev
     command: go run -tags=dev cmd/scheduler/main.go
     env_file:
       - .env
